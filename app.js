@@ -10,7 +10,9 @@ let currentState = STATES.INITIAL;
 let autoDetectTimer = null;
 // --- DOM Elements ---
 const launcherWindow = document.getElementById('launcherWindow');
+const watermarkGroup = document.getElementById('watermarkGroup');
 const watermark = document.getElementById('watermark');
+const initialStatus = document.getElementById('initialStatus');
 const instanceCard = document.getElementById('instanceCard');
 const loadingWrapper = document.getElementById('loadingWrapper');
 const progressBar = document.getElementById('progressBar');
@@ -25,7 +27,7 @@ let particles = [];
 let animationFrameId = null;
 function resizeCanvas() {
     canvas.width = launcherWindow.clientWidth;
-    canvas.height = launcherWindow.clientHeight;
+    canvas.height = launcherWindow.clientHeight - 32; // Excluding the title bar height
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas(); // Initial call
@@ -38,39 +40,36 @@ class Particle {
         const angle = Math.random() * Math.PI * 2;
         const speed = 0.5 + Math.random() * 3.5;
         this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed - (0.5 + Math.random() * 1.5); // Drift upwards slightly
+        this.vy = Math.sin(angle) * speed - (0.3 + Math.random() * 1.2); // Drift upwards slightly
         
         // Color
         this.isGreen = isGreen;
         this.color = isGreen 
-            ? `rgba(0, 255, 135, ${0.7 + Math.random() * 0.3})` // Emerald Green Accent
-            : `rgba(255, 255, 255, ${0.8 + Math.random() * 0.2})`; // Pure White Logo
+            ? `rgba(16, 185, 129, ${0.7 + Math.random() * 0.3})` // Emerald Green Accent
+            : `rgba(255, 255, 255, ${0.8 + Math.random() * 0.2})`; // Pure White
             
         // Size & Lifetime
-        this.size = isGreen ? 1 + Math.random() * 2 : 2 + Math.random() * 4;
-        this.maxLife = 40 + Math.random() * 35; // Frames of life
+        this.size = isGreen ? 1 + Math.random() * 2 : 2 + Math.random() * 3;
+        this.maxLife = 35 + Math.random() * 30; // Frames of life
         this.life = this.maxLife;
-        this.decay = 0.96 + Math.random() * 0.03;
+        this.decay = 0.95 + Math.random() * 0.03;
         this.alpha = 1.0;
-        this.blur = isGreen ? 1 : 2 + Math.random() * 3;
+        this.blur = isGreen ? 1 : 2 + Math.random() * 2;
     }
     update() {
         this.x += this.vx;
         this.y += this.vy;
-        
-        // Slow down drift over time (friction)
         this.vx *= 0.95;
         this.vy *= 0.95;
         
-        // Decay lifetime & opacity
         this.life--;
         this.alpha = this.life / this.maxLife;
-        this.size *= 0.98;
+        this.size *= 0.97;
     }
     draw() {
         ctx.save();
         ctx.globalAlpha = this.alpha;
-        ctx.shadowColor = this.isGreen ? '#00FF87' : '#ffffff';
+        ctx.shadowColor = this.isGreen ? '#10b981' : '#ffffff';
         ctx.shadowBlur = this.blur;
         ctx.fillStyle = this.color;
         
@@ -100,18 +99,18 @@ function spawnLogoDissolveParticles() {
     const rect = watermark.getBoundingClientRect();
     const launcherRect = launcherWindow.getBoundingClientRect();
     
-    // Relative coordinates of logo inside the launcher container
-    const logoCenterX = (rect.left - launcherRect.left) + (rect.width / 4); // Focused around the icon
-    const logoCenterY = (rect.top - launcherRect.top) + (rect.height / 2);
+    // Relative coordinates of logo inside the content area (shifted down by titlebar 32px)
+    const logoCenterX = (rect.left - launcherRect.left) + (rect.width / 2);
+    const logoCenterY = (rect.top - launcherRect.top - 32) + (rect.height / 2);
     
     particles = [];
     
-    // Spawn 70 white particles and 40 green trails
-    for (let i = 0; i < 70; i++) {
-        particles.push(new Particle(logoCenterX + (Math.random() - 0.5) * 40, logoCenterY + (Math.random() - 0.5) * 40, false));
+    // Spawn particles to simulate text dissolve
+    for (let i = 0; i < 60; i++) {
+        particles.push(new Particle(logoCenterX + (Math.random() - 0.5) * 120, logoCenterY + (Math.random() - 0.5) * 30, false));
     }
-    for (let i = 0; i < 40; i++) {
-        particles.push(new Particle(logoCenterX + (Math.random() - 0.5) * 50, logoCenterY + (Math.random() - 0.5) * 50, true));
+    for (let i = 0; i < 35; i++) {
+        particles.push(new Particle(logoCenterX + (Math.random() - 0.5) * 140, logoCenterY + (Math.random() - 0.5) * 35, true));
     }
     if (!animationFrameId) {
         animateParticles();
@@ -133,25 +132,28 @@ function triggerDetection() {
     
     updateHUD(STATES.DETECTED);
     
-    // Move logo upwards, scale down
-    watermark.classList.add('detected');
+    // Fade out initial status text
+    initialStatus.classList.add('hidden');
+    
+    // Move logo group upwards
+    watermarkGroup.classList.add('detected');
     
     // Animate Instance Card in
     setTimeout(() => {
         instanceCard.classList.add('visible');
-    }, 100);
+    }, 150);
 }
 function triggerAttach() {
     if (currentState !== STATES.DETECTED) return;
     
     updateHUD(STATES.ATTACHING);
     
-    // Stage 1: Card slightly shrinks and brightens
+    // Stage 1: Card slightly shrinks
     instanceCard.classList.add('clicked');
     
     setTimeout(() => {
-        // Stage 2: Logo exits (dissolves with particles)
-        watermark.classList.add('dissolve-state');
+        // Stage 2: Watermark group exits (dissolves with particles)
+        watermarkGroup.classList.add('dissolve-state');
         spawnLogoDissolveParticles();
         
         // Stage 3: Card exits (slides down, fades out)
@@ -176,7 +178,6 @@ function startLoading() {
     let progress = 0;
     progressBar.style.width = '0%';
     
-    // Simulated Progress loop using requestAnimationFrame for 144Hz smoothness
     function updateProgress() {
         if (progress >= 100) {
             progress = 100;
@@ -185,9 +186,9 @@ function startLoading() {
             return;
         }
         
-        // Easing for loader: variable speed, slightly slower towards the end for realism
-        const increment = (100 - progress) * 0.03 + 0.2;
-        progress += increment + (Math.random() * 0.3);
+        // Easing progress animation
+        const increment = (100 - progress) * 0.04 + 0.3;
+        progress += increment + (Math.random() * 0.4);
         
         progressBar.style.width = `${Math.min(progress, 100)}%`;
         requestAnimationFrame(updateProgress);
@@ -196,7 +197,7 @@ function startLoading() {
     setTimeout(updateProgress, 300);
 }
 function completeLoading() {
-    // Progress reached 100%: collapse inward animation
+    // Inward collapse of loading progress container
     progressContainer.classList.add('collapse-inward');
     
     // Fade out text label
@@ -216,10 +217,9 @@ function completeLoading() {
             updateHUD(STATES.FINISHED);
         }, 300);
         
-    }, 500); // Wait for the collapse animation (500ms)
+    }, 500);
 }
 function resetDemo() {
-    // Clear auto timers
     if (autoDetectTimer) clearTimeout(autoDetectTimer);
     
     // Clear particles
@@ -231,7 +231,8 @@ function resetDemo() {
     }
     
     // Reset Classes
-    watermark.className = 'watermark-wrapper';
+    watermarkGroup.className = 'watermark-group';
+    initialStatus.className = 'initial-status';
     instanceCard.className = 'instance-card';
     loadingWrapper.className = 'loading-wrapper';
     progressBar.style.width = '0%';
@@ -250,27 +251,26 @@ function resetDemo() {
 // Window decoration actions
 function minimizeWindow() {
     launcherWindow.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s';
-    launcherWindow.style.transform = 'scale(0.8) translateY(100px)';
+    launcherWindow.style.transform = 'scale(0.85) translateY(80px)';
     launcherWindow.style.opacity = '0.3';
     
     setTimeout(() => {
         launcherWindow.style.transform = '';
         launcherWindow.style.opacity = '1';
-    }, 1500); // auto restore for demo demonstration
+    }, 1500);
 }
 function closeWindow() {
     launcherWindow.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s';
-    launcherWindow.style.transform = 'scale(0.9) translateY(20px)';
+    launcherWindow.style.transform = 'scale(0.95) translateY(15px)';
     launcherWindow.style.opacity = '0';
     
     setTimeout(() => {
         launcherWindow.style.transform = '';
         launcherWindow.style.opacity = '1';
-    }, 2000); // auto restore for demo demonstration
+    }, 2000);
 }
 // --- Autoplay Simulation on Page Load ---
 window.addEventListener('DOMContentLoaded', () => {
     resizeCanvas();
-    // Auto-trigger detection after 2 seconds
     autoDetectTimer = setTimeout(triggerDetection, 2000);
 });
