@@ -7,7 +7,7 @@
     -webkit-user-drag: none;
 }
 body {
-    background-color: #050507;
+    background-color: #0b0b0d;
     font-family: 'Inter', sans-serif;
     color: #ffffff;
     height: 100vh;
@@ -25,11 +25,11 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1605899435973-ca2d1a8861cf?q=80&w=1920&auto=format&fit=crop');
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1605899435973-ca2d1a8861cf?q=80&w=1920&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
     filter: blur(25px) scale(1.05);
-    opacity: 0.4;
+    opacity: 0.3;
     transition: filter 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1;
     display: flex;
@@ -46,7 +46,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+    background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
     z-index: 2;
 }
 .mc-content {
@@ -66,7 +66,7 @@ body {
     top: -150px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 13px;
+    font-size: 12px;
     letter-spacing: 3px;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.3);
@@ -171,13 +171,10 @@ body {
 /* --- Launcher Custom Window --- */
 .launcher-container {
     position: relative;
-    width: 760px;
+    width: 780px;
     height: 480px;
-    background: radial-gradient(circle at center, #131317 0%, #08080a 100%);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background-color: #161616; /* Exact flat dark background from the image */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     z-index: 10;
     overflow: hidden;
     display: flex;
@@ -187,62 +184,77 @@ body {
 }
 .launcher-container.hidden {
     opacity: 0;
-    transform: scale(0.95) translateY(10px);
+    transform: scale(0.96) translateY(10px);
     pointer-events: none;
 }
-/* Custom Frameless Window Controls */
-.window-controls {
-    position: absolute;
-    top: 15px;
-    right: 15px;
+/* Custom Windows Title Bar */
+.title-bar {
+    height: 32px;
+    background-color: #ffffff; /* Crisp white title bar */
     display: flex;
-    gap: 12px;
-    z-index: 50;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 10px;
+    border-bottom: 1px solid #e0e0e0;
 }
-.control-btn {
-    width: 28px;
-    height: 28px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
+.title-bar-left {
+    display: flex;
+    align-items: center;
+}
+/* Replicating the green/blue segmented app icon */
+.app-icon {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #a3a3a3;
+    display: flex;
+    padding: 1px;
+    gap: 1px;
+    background-color: #f3f3f3;
+}
+.app-icon-segment {
+    flex: 1;
+}
+.app-icon-segment.green {
+    background-color: #10B981;
+}
+.app-icon-segment.blue {
+    background-color: #2563EB;
+}
+.title-bar-right {
+    display: flex;
+    height: 100%;
+}
+.win-btn {
+    width: 46px;
+    height: 100%;
+    border: none;
+    background: transparent;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+    transition: background-color 0.15s;
 }
-.control-btn svg {
-    opacity: 0.6;
-    transition: opacity 0.2s, transform 0.2s;
+.win-btn svg {
+    opacity: 0.8;
 }
-/* Minimize Button specific hover */
-.control-btn.minimize:hover {
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+.win-btn:hover {
+    background-color: #e5e5e5;
 }
-.control-btn.minimize:hover svg {
-    opacity: 1;
-    transform: scale(1.15);
+.win-btn.close:hover {
+    background-color: #e81123;
 }
-/* Close Button specific hover */
-.control-btn.close:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.4);
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-}
-.control-btn.close:hover svg {
-    opacity: 1;
-}
-.control-btn.close:hover svg path {
-    stroke: #ef4444;
+.win-btn.close:hover svg path {
+    stroke: white;
 }
 /* Particle Canvas Overlay */
 #particleCanvas {
     position: absolute;
-    top: 0;
+    top: 32px;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 32px);
     z-index: 15;
     pointer-events: none;
 }
@@ -254,61 +266,48 @@ body {
     align-items: center;
     position: relative;
     z-index: 20;
+    padding-bottom: 20px;
 }
-/* --- Watermark Design --- */
-.watermark-wrapper {
+/* --- Watermark / Logo Group --- */
+.watermark-group {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 16px;
     transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), 
                 opacity 0.45s cubic-bezier(0.25, 1, 0.5, 1),
                 filter 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     transform-origin: center;
-    position: relative;
 }
-/* Custom Watermark exit / dissolve styles handled in JS, but setup default filters */
-.watermark-wrapper.dissolve-state {
+/* Watermark exit states */
+.watermark-group.dissolve-state {
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
                 opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
                 filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: scale(1.15) !important;
+    transform: scale(1.1) !important;
     opacity: 0 !important;
-    filter: blur(15px) brightness(2.5) !important;
+    filter: blur(12px) brightness(2.5) !important;
 }
-.logo-icon-container {
-    width: 72px;
-    height: 72px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.logo-icon {
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 4px 15px rgba(255, 255, 255, 0.15));
-}
-.logo-text-group {
+.watermark-wrapper {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 .logo-name {
     font-family: 'Outfit', sans-serif;
-    font-size: 38px;
+    font-size: 40px;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: 0.5px;
-    text-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
 }
 .logo-badge-container {
     transform: skewX(-14deg);
+    margin-top: 4px;
 }
 .logo-badge {
-    border: 1px solid rgba(16, 185, 129, 0.8);
-    background: rgba(16, 185, 129, 0.05);
-    padding: 3px 12px;
-    border-radius: 4px;
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    border: 1px solid #10b981; /* Thin emerald green outline matching Vape V4 style */
+    background: transparent;
+    padding: 2px 10px;
+    border-radius: 2px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -317,32 +316,45 @@ body {
     display: block;
     transform: skewX(14deg);
     font-family: 'Outfit', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
-    color: #00FF87;
-    letter-spacing: 1.5px;
-    text-shadow: 0 0 10px rgba(0, 255, 135, 0.4);
+    color: #10b981;
+    letter-spacing: 1px;
+}
+/* --- Initial Status Text --- */
+.initial-status {
+    text-align: center;
+    color: #555555; /* Medium gray font */
+    font-size: 13px;
+    margin-top: 24px;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.initial-status.hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
 }
 /* --- Detected State Shift --- */
-.watermark-wrapper.detected {
-    transform: translateY(-50px) scale(0.85);
+.watermark-group.detected {
+    transform: translateY(-40px) scale(0.95);
 }
 /* --- Minecraft Instance Card --- */
 .instance-card {
     position: absolute;
-    bottom: 120px;
+    bottom: 110px;
     width: 440px;
-    background: rgba(20, 20, 26, 0.65);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    background: rgba(25, 25, 25, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
     padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 
-                inset 0 0 15px rgba(16, 185, 129, 0.03);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
     
     /* Animation initial state */
     opacity: 0;
@@ -351,7 +363,8 @@ body {
     transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
                 transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 background-color 0.15s,
-                box-shadow 0.15s;
+                box-shadow 0.15s,
+                border-color 0.15s;
 }
 .instance-card.visible {
     opacity: 1;
@@ -360,16 +373,16 @@ body {
 }
 /* Card states */
 .instance-card.clicked {
-    transform: scale(0.96) translateY(2px);
-    background-color: rgba(255, 255, 255, 0.05);
+    transform: scale(0.97) translateY(2px);
+    background-color: rgba(255, 255, 255, 0.04);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 
-                0 0 15px rgba(0, 255, 135, 0.15);
-    border-color: rgba(16, 185, 129, 0.3);
+                0 0 10px rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
 }
 .instance-card.exit {
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(30px);
     opacity: 0;
-    filter: blur(5px);
+    filter: blur(4px);
     pointer-events: none;
     transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
                 opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
@@ -381,41 +394,39 @@ body {
     gap: 14px;
 }
 .game-icon {
-    width: 42px;
-    height: 42px;
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid rgba(16, 185, 129, 0.15);
-    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.12);
+    border-radius: 6px;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 .text-details {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 .version {
     font-family: 'Outfit', sans-serif;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 0.5px;
 }
 .username {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.5);
 }
 .user-highlight {
-    color: #e2e8f0;
+    color: #d1d5db;
     font-weight: 500;
 }
 .instance-action {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px;
+    gap: 6px;
 }
 .status-indicator {
     display: flex;
@@ -444,7 +455,7 @@ body {
     font-size: 10px;
     font-weight: 700;
     color: #10B981;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 @keyframes pulse {
     0% {
@@ -456,31 +467,27 @@ body {
         opacity: 0;
     }
 }
-/* Premium Attach Button */
+/* Attach Button */
 .attach-btn {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    background: #10B981;
     border: none;
-    border-radius: 6px;
-    padding: 6px 16px;
+    border-radius: 4px;
+    padding: 5px 14px;
     color: #ffffff;
     font-family: 'Outfit', sans-serif;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .attach-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+    background: #059669;
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
 }
 .attach-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    transform: scale(0.95);
 }
 /* --- Loading Screen --- */
 .loading-wrapper {
@@ -490,7 +497,7 @@ body {
     align-items: center;
     gap: 12px;
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.97);
     pointer-events: none;
     transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
                 transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -501,39 +508,33 @@ body {
 }
 .loading-label {
     font-size: 11px;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.4);
     font-family: 'Outfit', sans-serif;
     font-weight: 500;
-    animation: textPulse 2s infinite ease-in-out;
-}
-@keyframes textPulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.8; }
 }
 .progress-container {
-    width: 260px;
+    width: 240px;
     height: 3px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
     overflow: hidden;
     position: relative;
-    /* Scale pivot in the center for the shrink collapse animation */
     transform-origin: center;
     transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
 }
 .progress-container.collapse-inward {
-    transform: scaleX(0); /* Collapses from both ends toward center */
+    transform: scaleX(0);
 }
 .progress-bar {
     height: 100%;
-    width: 0%; /* Dynamic */
-    background: linear-gradient(90deg, #00FF87 0%, #60EFFF 100%);
+    width: 0%;
+    background: linear-gradient(90deg, #10b981 0%, #00e676 100%);
     border-radius: 20px;
-    box-shadow: 0 0 10px rgba(0, 255, 135, 0.8);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
     position: relative;
-    transition: width 0.1s linear; /* Smooth fill */
+    transition: width 0.1s linear;
 }
 .progress-glow {
     position: absolute;
@@ -541,7 +542,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
     background-size: 200% 100%;
     animation: glowShift 1.5s infinite linear;
 }
