@@ -1,0 +1,138 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #111111; /* Desktop background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
+.window {
+    width: 800px;
+    height: 500px;
+    background-color: #181818; /* Dark window background */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+    border: 1px solid #333;
+}
+
+.title-bar {
+    height: 32px;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 10px;
+    user-select: none;
+}
+
+.title-bar-left {
+    display: flex;
+    align-items: center;
+}
+
+.icon {
+    width: 14px;
+    height: 14px;
+    background-color: #e0e0e0;
+    border: 1px solid #a0a0a0;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-inner {
+    width: 6px;
+    height: 6px;
+    background-color: #2ecc71; /* Green element in the icon */
+}
+
+.title-bar-right {
+    display: flex;
+    height: 100%;
+}
+
+.win-btn {
+    width: 46px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    outline: none;
+    transition: background-color 0.1s;
+}
+
+.win-btn:hover {
+    background-color: #e5e5e5;
+}
+
+.win-btn.close:hover {
+    background-color: #e81123;
+}
+
+.win-btn.close:hover svg path {
+    stroke: white;
+}
+
+.window-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #1a1a1a;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.logo-text {
+    font-size: 52px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 1px;
+    font-family: 'Arial Black', 'Inter', sans-serif; 
+}
+
+.logo-badge {
+    margin-left: 10px;
+    border: 2px solid #2ecc71; /* Neon green border */
+    color: #2ecc71;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: skewX(-15deg);
+}
+
+.logo-badge span {
+    display: block;
+    transform: skewX(15deg); /* Unskew text */
+    letter-spacing: 1px;
+}
+
+.status-text {
+    text-align: center;
+    color: #7a7a7a;
+    font-size: 16px;
+    line-height: 1.5;
+    font-family: 'Inter', sans-serif;
+}
