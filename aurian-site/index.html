@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurian Client — Next-Generation Minecraft Experience</title>
+  <meta name="description" content="Aurian Client is a continuously updated Minecraft client fork built for performance, stability, and a clean feature set." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    /* ── Hero ─────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: calc(100vh - var(--nav-h));
+      display: flex;
+      align-items: center;
+      padding: 0 48px;
+      overflow: hidden;
+    }
+
+    .hero-glow-1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(56,120,220,0.18) 0%, transparent 70%);
+      top: -100px; right: -100px;
+    }
+
+    .hero-glow-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(77,204,245,0.08) 0%, transparent 70%);
+      bottom: 0; left: 20%;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+    }
+
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .hero-eyebrow-line {
+      width: 32px;
+      height: 1px;
+      background: var(--blue);
+    }
+
+    .hero-eyebrow span {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    .hero-title {
+      font-size: clamp(44px, 7vw, 80px);
+      font-weight: 700;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+    }
+
+    .hero-title em {
+      font-style: normal;
+      color: var(--cyan);
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 40px;
+      max-width: 500px;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 56px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hero-stat-val {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .hero-stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero-stat-sep {
+      width: 1px;
+      background: var(--border);
+      align-self: stretch;
+    }
+
+    /* ── What section ──────────────────────────────────── */
+    .what-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .what-card-big {
+      grid-column: span 2;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .what-card-big-text h3 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .what-card-big-text p {
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 420px;
+      line-height: 1.65;
+    }
+
+    .what-card-big-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--blue-glow);
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── Versions / compatibility ──────────────────────── */
+    .compat-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 48px;
+      flex-wrap: wrap;
+    }
+
+    .compat-pill {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text);
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .compat-pill .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+    }
+
+    .compat-pill.wip .dot { background: #F5A623; box-shadow: 0 0 6px #F5A623; }
+    .compat-pill.soon .dot { background: var(--muted); box-shadow: none; }
+
+    /* ── CTA banner ────────────────────────────────────── */
+    .cta-banner {
+      margin: 0 48px 96px;
+      background: linear-gradient(135deg, var(--bg2) 0%, rgba(56,120,220,0.12) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 64px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(56,120,220,0.2) 0%, transparent 70%);
+      top: -80px; right: 80px;
+      pointer-events: none;
+    }
+
+    .cta-banner h2 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .cta-banner p { color: var(--muted); font-size: 16px; }
+
+    .cta-banner-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">
+    <img src="assets/logo.png" alt="Aurian Client" style="height:32px;width:auto;object-fit:contain;" />
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="features.html">Features</a></li>
+    <li><a href="docs/tos.html">Docs</a></li>
+    <li><a href="#download" class="nav-cta">Download</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+
+  <!-- ── Hero ──────────────────────────────────────────── -->
+  <div class="hero">
+    <div class="glow-blob hero-glow-1"></div>
+    <div class="glow-blob hero-glow-2"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <div class="hero-eyebrow-line"></div>
+        <span>Continuously Updated · Free Access</span>
+      </div>
+
+      <h1 class="hero-title">
+        Built to<br>
+        <em>run better.</em>
+      </h1>
+
+      <p class="hero-sub">
+        Aurian Client is a Minecraft client fork focused on clean performance,
+        active updates, and features that actually matter. No bloat. No cost.
+      </p>
+
+      <div class="hero-btns">
+        <a href="#download" class="btn btn-primary">
+          ↓ Download Aurian
+        </a>
+        <a href="features.html" class="btn btn-ghost">
+          View Features →
+        </a>
+      </div>
+
+      <div class="hero-meta">
+        <div class="hero-stat">
+          <span class="hero-stat-val">Free</span>
+          <span class="hero-stat-label">Always</span>
+        </div>
+        <div class="hero-stat-sep"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">Active</span>
+          <span class="hero-stat-label">Development</span>
+        </div>
+        <div class="hero-stat-sep"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">Fork</span>
+          <span class="hero-stat-label">Based</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Ticker ─────────────────────────────────────────── -->
+  <div class="ticker-wrap">
+    <div class="ticker-track">
+      <span class="ticker-item">Free Access</span>
+      <span class="ticker-item">Active Updates</span>
+      <span class="ticker-item">Clean Interface</span>
+      <span class="ticker-item">Windows Support</span>
+      <span class="ticker-item">Lightweight</span>
+      <span class="ticker-item">Stable Builds</span>
+      <span class="ticker-item">Free Access</span>
+      <span class="ticker-item">Active Updates</span>
+      <span class="ticker-item">Clean Interface</span>
+      <span class="ticker-item">Windows Support</span>
+      <span class="ticker-item">Lightweight</span>
+      <span class="ticker-item">Stable Builds</span>
+    </div>
+  </div>
+
+  <!-- ── What You Get ──────────────────────────────────── -->
+  <section>
+    <p class="section-label">[ 01 ] What You Get</p>
+    <h2 class="section-title">Everything you need.<br>Nothing you don't.</h2>
+    <p class="section-sub">Aurian is a focused client. Every feature is there for a reason — kept sharp, updated regularly, and free.</p>
+
+    <div class="what-grid">
+      <div class="what-card-big">
+        <div class="what-card-big-text">
+          <h3>A fork that's actually maintained</h3>
+          <p>Aurian is built on top of a solid foundation and kept moving. Updates ship regularly — bug fixes, improvements, and new features as the client matures.</p>
+        </div>
+        <div class="what-card-big-badge">Actively Updated</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Performance First</div>
+        <p class="card-desc">Lightweight by design. Aurian stays out of the way so your game runs the way it should.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <div class="card-title">Clean & Transparent</div>
+        <p class="card-desc">No hidden telemetry beyond what's needed. Read our privacy policy to see exactly what we collect.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🛠</div>
+        <div class="card-title">Expanding Features</div>
+        <p class="card-desc">The feature set grows with each release. Check the features page to see what's available now.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <div class="card-title">Community Driven</div>
+        <p class="card-desc">Feedback shapes the roadmap. Join the Discord to report bugs, suggest features, and follow development.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ── Compatibility ──────────────────────────────────── -->
+  <section>
+    <p class="section-label">[ 02 ] Compatibility</p>
+    <h2 class="section-title">Where it runs.</h2>
+    <p class="section-sub">Aurian currently targets the most widely-used Minecraft environment. More compatibility is on the roadmap.</p>
+
+    <div class="compat-row">
+      <div class="compat-pill"><span class="dot"></span> Windows</div>
+      <div class="compat-pill"><span class="dot"></span> Lunar Client</div>
+      <div class="compat-pill"><span class="dot"></span> Vanilla</div>
+      <div class="compat-pill"><span class="dot"></span> Forge</div>
+      <div class="compat-pill wip"><span class="dot"></span> 1.8.9</div>
+      <div class="compat-pill soon"><span class="dot"></span> macOS — Soon</div>
+      <div class="compat-pill soon"><span class="dot"></span> Linux — Soon</div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ── Download ───────────────────────────────────────── -->
+  <section id="download">
+    <p class="section-label">[ 03 ] Download</p>
+    <h2 class="section-title">Get started.</h2>
+    <p class="section-sub">Grab Aurian, open Minecraft, and you're in. No installer. No account required.</p>
+
+    <div style="margin-top:40px;display:flex;gap:16px;flex-wrap:wrap;">
+      <a href="#" class="btn btn-primary">Download for Windows</a>
+      <a href="features.html" class="btn btn-ghost">View Changelog →</a>
+    </div>
+
+    <p style="margin-top:20px;font-size:13px;color:var(--muted);font-family:var(--font-mono);">
+      By downloading, you agree to our <a href="docs/tos.html">Terms of Service</a> and <a href="docs/privacy.html">Privacy Policy</a>.
+    </p>
+  </section>
+
+  <!-- ── CTA Banner ─────────────────────────────────────── -->
+  <div class="cta-banner">
+    <div>
+      <h2>Join the community.</h2>
+      <p>Follow development, report bugs, and share configs in the Aurian Discord.</p>
+    </div>
+    <div class="cta-banner-btns">
+      <a href="#" class="btn btn-primary">Join Discord</a>
+      <a href="docs/tos.html" class="btn btn-ghost">Read the Docs</a>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- ── Footer ──────────────────────────────────────────── -->
+<footer>
+  <div class="footer-logo"><img src="assets/logo.png" alt="Aurian Client" style="height:24px;width:auto;object-fit:contain;opacity:0.7;" /></div>
+  <ul class="footer-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="features.html">Features</a></li>
+    <li><a href="docs/tos.html">Terms</a></li>
+    <li><a href="docs/privacy.html">Privacy</a></li>
+  </ul>
+  <span class="footer-copy">© 2026 AurianStudio. All rights reserved.</span>
+</footer>
+
+</body>
+</html>
