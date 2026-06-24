@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Features — Aurian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080b10;--bg2:#0c1018;--blue:#4a9eff;--blue2:#2563eb;--cyan:#67e8f9;--text:#f0f4ff;--muted:#5a6a85;--border:rgba(74,158,255,0.12);--card:rgba(12,16,24,0.9);--nav:64px;--mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(74,158,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(74,158,255,0.04) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(135deg,transparent,transparent 60px,rgba(74,158,255,0.025) 60px,rgba(74,158,255,0.025) 61px);pointer-events:none;z-index:0}
+nav{position:fixed;top:0;left:0;right:0;height:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 48px;background:rgba(8,11,16,0.8);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);z-index:999}
+.nav-left{display:flex;align-items:center;gap:20px}
+.nav-logo img{height:28px;width:auto}
+.nav-version{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.08em;padding:3px 10px;background:rgba(74,158,255,0.08);border:1px solid var(--border);border-radius:4px}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
+.nav-links a{font-size:13px;font-weight:500;color:var(--muted);transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--text)}
+.nav-dl{background:var(--blue2);color:#fff!important;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;transition:all .2s}
+.nav-dl:hover{background:var(--blue)}
+.page{position:relative;z-index:1;padding-top:var(--nav)}
+section{max-width:1140px;margin:0 auto;padding:80px 48px}
+.sec-label{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blue);margin-bottom:12px}
+.sec-title{font-size:clamp(30px,4vw,52px);font-weight:800;letter-spacing:-0.025em;margin-bottom:16px;line-height:1.1}
+.sec-sub{font-size:17px;color:var(--muted);max-width:520px;line-height:1.65;margin-bottom:48px}
+.divider{border:none;border-top:1px solid var(--border);margin:0 48px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(74,158,255,0.3),transparent)}
+.feat-card:hover{border-color:rgba(74,158,255,0.35);transform:translateY(-3px)}
+.feat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.feat-card-name{font-size:15px;font-weight:600}
+.status{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;letter-spacing:0.06em;text-transform:uppercase}
+.live{background:rgba(56,220,120,0.1);color:#4dcc8f;border:1px solid rgba(56,220,120,0.2)}
+.wip{background:rgba(245,166,35,0.1);color:#f5a623;border:1px solid rgba(245,166,35,0.2)}
+.planned{background:rgba(107,122,153,0.1);color:var(--muted);border:1px solid var(--border)}
+.feat-card-desc{font-size:13px;color:var(--muted);line-height:1.55}
+.cat-header{margin-bottom:24px}
+.cat-label{font-family:var(--mono);font-size:11px;color:var(--blue);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px}
+.cat-title{font-size:26px;font-weight:800;letter-spacing:-0.02em}
+.legend{display:flex;gap:16px;margin-bottom:48px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+footer{border-top:1px solid var(--border);position:relative;z-index:1}
+.footer-inner{max-width:1140px;margin:0 auto;padding:40px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.footer-logo img{height:22px;opacity:.6}
+.footer-links{display:flex;gap:24px;list-style:none}
+.footer-links a{font-size:13px;color:var(--muted);transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{font-family:var(--mono);font-size:11px;color:var(--muted)}
+@media(max-width:900px){nav{padding:0 20px}section{padding:56px 20px}.feat-grid{grid-template-columns:1fr}.divider{margin:0 20px}.footer-inner{flex-direction:column;padding:32px 20px}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-left">
+    <div class="nav-logo"><img src="assets/logo.png" alt="Aurian"/></div>
+    <span class="nav-version">V1.0 · EARLY ACCESS</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="features.html" class="active">Features</a></li>
+    <li><a href="docs/tos.html">Docs</a></li>
+    <li><a href="index.html#download" class="nav-dl">Download ↓</a></li>
+  </ul>
+</nav>
+<div class="page">
+<section>
+  <p class="sec-label">Features</p>
+  <h1 class="sec-title">What Aurian can do.</h1>
+  <p class="sec-sub">Every feature is live, in development, or planned. The client grows with every release.</p>
+  <div class="legend">
+    <div class="legend-item"><span class="status live">Live</span> Available now</div>
+    <div class="legend-item"><span class="status wip">WIP</span> In development</div>
+    <div class="legend-item"><span class="status planned">Planned</span> Coming soon</div>
+  </div>
+
+  <div class="cat-header"><p class="cat-label">Category 01</p><h2 class="cat-title">Visual</h2></div>
+  <div class="feat-grid" style="margin-bottom:64px">
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Custom Crosshair</span><span class="status live">Live</span></div><p class="feat-card-desc">Replace the default crosshair with a custom shape, color, and size.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Fullbright</span><span class="status live">Live</span></div><p class="feat-card-desc">Remove all darkness from the game world. See clearly in caves without torches.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Cape Support</span><span class="status live">Live</span></div><p class="feat-card-desc">Display custom capes via supported cape providers.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Item Animations</span><span class="status live">Live</span></div><p class="feat-card-desc">Restore and customize old item swing animations for a classic feel.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Hit Color</span><span class="status live">Live</span></div><p class="feat-card-desc">Change the color flash that appears when an entity takes damage.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Nametag Tweaks</span><span class="status wip">WIP</span></div><p class="feat-card-desc">Scale, recolor, and customize player nametags with additional detail options.</p></div>
+  </div>
+
+  <div class="cat-header"><p class="cat-label">Category 02</p><h2 class="cat-title">HUD & Interface</h2></div>
+  <div class="feat-grid" style="margin-bottom:64px">
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Coordinates HUD</span><span class="status live">Live</span></div><p class="feat-card-desc">Always-visible X/Y/Z coordinates without opening debug mode.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">FPS Counter</span><span class="status live">Live</span></div><p class="feat-card-desc">Real-time frame rate display, positionable anywhere on screen.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Ping Display</span><span class="status live">Live</span></div><p class="feat-card-desc">Show your current server ping so you always know your connection quality.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Potion HUD</span><span class="status live">Live</span></div><p class="feat-card-desc">Compact display of active potion effects with timers.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Armor HUD</span><span class="status live">Live</span></div><p class="feat-card-desc">See your equipped armor and durability at a glance.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">HUD Editor</span><span class="status wip">WIP</span></div><p class="feat-card-desc">Drag-and-drop editor to reposition and resize every HUD element.</p></div>
+  </div>
+
+  <div class="cat-header"><p class="cat-label">Category 03</p><h2 class="cat-title">Utility</h2></div>
+  <div class="feat-grid" style="margin-bottom:64px">
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Zoom</span><span class="status live">Live</span></div><p class="feat-card-desc">Smooth, scrollable zoom. Bind it to any key and configure the level.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Toggle Sprint</span><span class="status live">Live</span></div><p class="feat-card-desc">Hold sprint as a toggle. Keeps your hand relaxed over long sessions.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Toggle Sneak</span><span class="status live">Live</span></div><p class="feat-card-desc">Tap to sneak, tap again to stand. No more holding Shift.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Screenshot Manager</span><span class="status wip">WIP</span></div><p class="feat-card-desc">In-game screenshot viewer and one-click share functionality.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Freelook</span><span class="status planned">Planned</span></div><p class="feat-card-desc">Look around without changing your facing direction.</p></div>
+    <div class="feat-card"><div class="feat-card-top"><span class="feat-card-name">Block Overlay</span><span class="status planned">Planned</span></div><p class="feat-card-desc">Custom block outline with adjustable color, thickness, and opacity.</p></div>
+  </div>
+</section>
+</div>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo"><img src="assets/logo.png" alt="Aurian"/></div>
+    <ul class="footer-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="docs/tos.html">Terms</a></li>
+      <li><a href="docs/privacy.html">Privacy</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 AurianStudio</span>
+  </div>
+</footer>
+</body>
+</html>
