@@ -1,791 +1,364 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Aurian — Free Minecraft Client</title>
-<meta name="description" content="Aurian is a free, continuously updated Minecraft 1.8.9 client fork built for performance and quality-of-life improvements."/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#080b10;
-  --bg2:#0c1018;
-  --bg3:#111822;
-  --blue:#4a9eff;
-  --blue2:#2563eb;
-  --cyan:#67e8f9;
-  --text:#f0f4ff;
-  --muted:#5a6a85;
-  --border:rgba(74,158,255,0.12);
-  --card:rgba(12,16,24,0.9);
-  --glow:rgba(74,158,255,0.15);
-  --nav:64px;
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Inter',sans-serif;
-}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:var(--sans);
-  font-size:16px;
-  background: radial-gradient(circle at top right, rgba(74,158,255,.12), transparent 35%), var(--bg);
-  line-height:1.6;
-  overflow-x:hidden;
-}
-a{color:inherit;text-decoration:none}
-/* Grid bg */
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  background-image:
-    linear-gradient(rgba(74,158,255,0.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(74,158,255,0.04) 1px,transparent 1px);
-  background-size:44px 44px;
-  pointer-events:none;z-index:0;
-}
-/* diagonal lines like Rain */
-body::after{
-  content:'';
-  position:fixed;inset:0;
-  background-image:repeating-linear-gradient(
-    135deg,
-    transparent,
-    transparent 60px,
-    rgba(74,158,255,0.025) 60px,
-    rgba(74,158,255,0.025) 61px
-  );
-  pointer-events:none;z-index:0;
-}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="https://www.vape.gg/storage/img/Fav.ico" type="image/x-icon">
 
-/* ── NAV ─────────────────────────────────────── */
-nav{
-  position:fixed;top:0;left:0;right:0;
-  height:var(--nav);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 64px;
-  background:rgba(8,11,16,0.72);
-  backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);
-  z-index:999;
-}
-.nav-left{display:flex;align-items:center;gap:20px}
-.nav-logo img{height:28px;width:auto;object-fit:contain}
-.nav-version{
-  font-family:var(--mono);
-  font-size:11px;color:var(--muted);
-  letter-spacing:0.08em;
-  padding:3px 10px;
-  background:rgba(74,158,255,0.08);
-  border:1px solid var(--border);
-  border-radius:4px;
-}
-.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
-.nav-links a{
-  font-size:13px;font-weight:500;
-  color:var(--muted);
-  letter-spacing:0.03em;
-  transition:color .2s;
-}
-.nav-links a:hover,.nav-links a.active{color:var(--text)}
-.nav-dl{
-  background:var(--blue2);
-  color:#fff!important;
-  padding:8px 20px;
-  border-radius:6px;
-  font-size:13px;
-  font-weight:600;
-  transition:background .2s,transform .15s;
-  display:flex;align-items:center;gap:6px;
-}
-.nav-dl:hover{background:var(--blue);transform:translateY(-1px)}
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="IeyI0p2JPI14dsaKtlCcvInTsoUDZ8OuzgMxMNkZ">
+    <title>
+        Vape Ghost Client    </title>
+	<meta property="og:site" content="https://www.vape.gg">
+	<meta property="og:site_name" content="Vape Ghost Client">
+	<meta property="og:title" content="Vape Ghost Client">
+	<meta name="keywords" content="vape client, ghost client, minecraft">
+    <meta name="description" content="Like steroids for Minecraft. Vape includes the highest quality Minecraft ghost client features, and will assure that you dominate every opponent.">
+    <!-- Fonts -->
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <!-- Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/redesign2.css?id=5ff6c1a61f1713724770">
+    <!-- Inline scripts -->
+    <link rel="dns-prefetch" href="https://www.google.com/">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-74070933-1" type="0c941e4f66a674d2de8e1d55-text/javascript"></script>
+<script type="0c941e4f66a674d2de8e1d55-text/javascript">
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
-/* ── PAGE ────────────────────────────────────── */
-.page{position:relative;z-index:1;padding-top:var(--nav)}
-
-/* ── HERO ────────────────────────────────────── */
-.hero{
-  min-height:calc(100vh - var(--nav));
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  align-items:center;
-  gap:48px;
-  padding:80px 64px;
-  position:relative;
-  max-width:1280px;
-  margin:0 auto;
-}
-.hero-glow{
-  position:absolute;
-  width:700px;height:700px;
-  background:radial-gradient(circle,rgba(74,158,255,0.12) 0%,transparent 65%);
-  top:-100px;right:-100px;
-  pointer-events:none;
-}
-.hero-pill{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:5px 14px;
-  background:rgba(74,158,255,0.08);
-  border:1px solid var(--border);
-  border-radius:999px;
-  font-family:var(--mono);
-  font-size:11px;color:var(--cyan);
-  letter-spacing:0.1em;text-transform:uppercase;
-  margin-bottom:24px;
-}
-.hero-pill-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--cyan);
-  box-shadow:0 0 8px var(--cyan);
-  animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.hero-title{
-  font-size:clamp(48px,6vw,80px);
-  font-weight:800;
-  line-height:1.0;
-  letter-spacing:-0.03em;
-  margin-bottom:24px;
-}
-.hero-title .accent{color:var(--cyan)}
-.hero-sub{
-  font-size:17px;
-  color:var(--muted);
-  line-height:1.7;
-  margin-bottom:36px;
-  max-width:480px;
-}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
-.btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:13px 28px;border-radius:7px;
-  font-size:15px;font-weight:600;
-  cursor:pointer;border:none;
-  transition:all .2s;font-family:var(--sans);
-}
-.btn-primary{background:var(--blue2);color:#fff}
-.btn-primary:hover{background:var(--blue);transform:translateY(-2px);box-shadow:0 8px 28px rgba(74,158,255,0.3)}
-.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
-.btn-ghost:hover{border-color:var(--blue);color:var(--cyan);transform:translateY(-2px)}
-.hero-tags{
-  display:flex;gap:24px;flex-wrap:wrap;
-  font-family:var(--mono);font-size:12px;color:var(--muted);
-  letter-spacing:0.05em;
-}
-.hero-tags span{color:var(--text);font-weight:500}
-/* right side - fake UI panel */
-.hero-ui{
-  position:relative;z-index:1;
-  background:rgba(12,16,24,0.95);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:20px;
-  backdrop-filter:blur(8px);
-  box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 60px rgba(74,158,255,0.08);
-}
-.hero-ui-bar{
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:16px;
-  padding-bottom:12px;
-  border-bottom:1px solid var(--border);
-}
-.hero-ui-dot{width:10px;height:10px;border-radius:50%}
-.ui-panel{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;
-}
-.ui-panel-col{
-  background:rgba(74,158,255,0.04);
-  border:1px solid var(--border);
-  border-radius:8px;padding:14px;
-}
-.ui-panel-title{
-  font-family:var(--mono);font-size:11px;
-  color:var(--blue);letter-spacing:0.08em;
-  text-transform:uppercase;margin-bottom:12px;
-  display:flex;justify-content:space-between;align-items:center;
-}
-.ui-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:7px 0;
-  border-bottom:1px solid rgba(74,158,255,0.06);
-  font-size:12px;
-}
-.ui-row:last-child{border-bottom:none}
-.ui-row-name{color:var(--text)}
-.ui-row-key{
-  font-family:var(--mono);font-size:10px;
-  color:var(--muted);
-  background:rgba(74,158,255,0.08);
-  border:1px solid var(--border);
-  padding:2px 6px;border-radius:3px;
-}
-.ui-toggle{
-  width:28px;height:15px;border-radius:999px;
-  background:var(--blue2);
-  position:relative;cursor:pointer;
-}
-.ui-toggle::after{
-  content:'';position:absolute;
-  right:2px;top:50%;transform:translateY(-50%);
-  width:11px;height:11px;border-radius:50%;
-  background:#fff;
-}
-.ui-toggle.off{background:rgba(74,158,255,0.15)}
-.ui-toggle.off::after{right:auto;left:2px}
-
-/* ── TICKER ───────────────────────────────────── */
-.ticker{
-  border-top:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-  background:var(--bg2);
-  padding:13px 0;overflow:hidden;
-  position:relative;z-index:1;
-}
-.ticker-track{
-  display:flex;gap:56px;width:max-content;
-  animation:tick 30s linear infinite;
-}
-.ticker-item{
-  font-family:var(--mono);font-size:11px;
-  color:var(--muted);letter-spacing:0.12em;
-  text-transform:uppercase;white-space:nowrap;
-  display:flex;align-items:center;gap:14px;
-}
-.ticker-item::before{content:'◆';color:var(--blue);font-size:7px}
-@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-
-/* ── SECTIONS ─────────────────────────────────── */
-section{
-  max-width:1140px;margin:0 auto;
-  padding:96px 48px;
-}
-.sec-label{
-  font-family:var(--mono);font-size:11px;
-  letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--blue);margin-bottom:12px;
-}
-.sec-title{
-  font-size:clamp(30px,4vw,48px);
-  font-weight:800;letter-spacing:-0.025em;
-  margin-bottom:16px;line-height:1.1;
-}
-.sec-sub{font-size:17px;color:var(--muted);max-width:520px;line-height:1.65}
-.divider{border:none;border-top:1px solid var(--border);margin:0 48px}
-
-/* ── FEATURE CARDS ────────────────────────────── */
-.feat-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;margin-top:48px;
-}
-.feat-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:10px;padding:28px;
-  transition:border-color .2s,transform .2s;
-  position:relative;overflow:hidden;
-}
-.feat-card::before{
-  content:'';
-  position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(74,158,255,0.3),transparent);
-}
-.feat-card:hover{border-color:rgba(74,158,255,0.35);transform:translateY(-3px)}
-.feat-card-num{
-  font-family:var(--mono);font-size:11px;
-  color:var(--muted);letter-spacing:0.1em;
-  margin-bottom:16px;
-}
-.feat-card-icon{
-  width:42px;height:42px;
-  background:rgba(74,158,255,0.08);
-  border:1px solid var(--border);
-  border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;margin-bottom:16px;
-}
-.feat-card-title{font-size:18px;font-weight:700;margin-bottom:8px}
-.feat-card-desc{font-size:14px;color:var(--muted);line-height:1.6}
-.feat-card-big{
-  grid-column:span 2;
-  display:flex;align-items:center;justify-content:space-between;gap:32px;
-}
-.feat-card-big-badge{
-  flex-shrink:0;
-  font-family:var(--mono);font-size:11px;
-  color:var(--cyan);
-  background:rgba(103,232,249,0.08);
-  border:1px solid rgba(103,232,249,0.2);
-  padding:8px 18px;border-radius:4px;
-  letter-spacing:0.08em;text-transform:uppercase;
-  white-space:nowrap;
-}
-
-/* ── INSTALL SECTION ──────────────────────────── */
-.install-grid{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:32px;margin-top:48px;align-items:start;
-}
-.install-steps{display:flex;flex-direction:column;gap:12px}
-.install-step{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:8px;padding:20px 24px;
-  display:flex;gap:20px;align-items:flex-start;
-}
-.install-step-num{
-  font-family:var(--mono);font-size:13px;
-  color:var(--muted);font-weight:700;
-  flex-shrink:0;margin-top:2px;
-}
-.install-step-title{font-size:15px;font-weight:600;margin-bottom:4px}
-.install-step-desc{font-size:13px;color:var(--muted);line-height:1.55}
-.install-dl-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:10px;padding:28px;
-  position:sticky;top:calc(var(--nav) + 20px);
-}
-.install-dl-tag{
-  display:flex;align-items:center;gap:8px;
-  font-family:var(--mono);font-size:10px;
-  color:var(--muted);letter-spacing:0.1em;
-  text-transform:uppercase;margin-bottom:16px;
-}
-.install-dl-tag span{color:var(--cyan)}
-.install-dl-verified{
-  font-family:var(--mono);font-size:10px;
-  border:1px solid var(--border);
-  padding:3px 8px;border-radius:3px;color:var(--muted);
-  margin-left:auto;
-}
-.install-dl-title{font-size:28px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
-.install-dl-sub{font-size:13px;color:var(--muted);margin-bottom:20px;font-family:var(--mono)}
-.dl-option{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:13px 18px;border-radius:7px;
-  border:1px solid var(--border);
-  margin-bottom:8px;font-size:14px;font-weight:500;
-  cursor:pointer;transition:all .2s;
-}
-.dl-option.active{
-  background:rgba(74,158,255,0.12);
-  border-color:var(--blue);color:var(--text);
-}
-.dl-option.disabled{color:var(--muted)}
-.dl-option-right{
-  font-family:var(--mono);font-size:12px;color:var(--muted)
-}
-.dl-option.active .dl-option-right{color:var(--blue)}
-
-/* ── FAQ ──────────────────────────────────────── */
-.faq-grid{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:12px;margin-top:48px;
-}
-.faq-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:10px;padding:24px 28px;
-  position:relative;
-}
-.faq-card-x{
-  position:absolute;top:16px;right:16px;
-  font-size:12px;color:var(--muted);
-  width:22px;height:22px;display:flex;align-items:center;justify-content:center;
-  border:1px solid var(--border);border-radius:4px;
-}
-.faq-q{font-size:15px;font-weight:600;margin-bottom:10px;padding-right:32px}
-.faq-a{font-size:13px;color:var(--muted);line-height:1.6}
-
-/* ── CTA BANNER ───────────────────────────────── */
-.cta-wrap{padding:0 48px 96px;position:relative;z-index:1}
-.cta{
-  background:linear-gradient(135deg,rgba(12,16,24,0.98) 0%,rgba(37,99,235,0.12) 100%);
-  border:1px solid var(--border);
-  border-radius:14px;padding:64px 56px;
-  display:flex;align-items:center;
-  justify-content:space-between;gap:40px;
-  position:relative;overflow:hidden;
-}
-.cta::before{
-  content:'';position:absolute;
-  width:400px;height:400px;
-  background:radial-gradient(circle,rgba(74,158,255,0.15) 0%,transparent 70%);
-  top:-100px;right:60px;pointer-events:none;
-}
-.cta-sec-label{
-  font-family:var(--mono);font-size:11px;
-  color:var(--blue);letter-spacing:0.14em;
-  text-transform:uppercase;margin-bottom:12px;
-}
-.cta h2{font-size:36px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
-.cta p{font-size:16px;
-  background: radial-gradient(circle at top right, rgba(74,158,255,.12), transparent 35%), var(--bg);color:var(--muted)}
-.cta-btns{display:flex;gap:12px;flex-wrap:wrap;flex-shrink:0}
-
-/* ── FOOTER ───────────────────────────────────── */
-footer{
-  border-top:1px solid var(--border);
-  padding:0;
-  position:relative;z-index:1;
-}
-.footer-inner{
-  max-width:1140px;margin:0 auto;
-  padding:48px;
-  display:flex;align-items:center;
-  justify-content:space-between;flex-wrap:wrap;gap:24px;
-}
-.footer-logo img{height:22px;opacity:.6;width:auto}
-.footer-links{display:flex;gap:28px;list-style:none}
-.footer-links a{font-size:13px;color:var(--muted);transition:color .2s}
-.footer-links a:hover{color:var(--text)}
-.footer-copy{font-family:var(--mono);font-size:11px;color:var(--muted)}
-
-/* ── COMPAT PILLS ─────────────────────────────── */
-.compat-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px}
-.compat-pill{
-  padding:9px 18px;border-radius:6px;
-  border:1px solid var(--border);
-  background:var(--bg2);
-  font-family:var(--mono);font-size:12px;color:var(--text);
-  display:flex;align-items:center;gap:8px;
-}
-.cdot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
-.cdot.orange{background:#f59e0b;box-shadow:0 0 6px #f59e0b}
-.cdot.grey{background:var(--muted);box-shadow:none}
-
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--blue2);border-radius:3px}
-
-@media(max-width:900px){
-  nav{padding:0 20px}
-  .hero{grid-template-columns:1fr;padding:48px 24px;gap:32px}
-  .hero-ui{display:none}
-  section{padding:64px 24px}
-  .divider{margin:0 24px}
-  .feat-grid{grid-template-columns:1fr}
-  .feat-card-big{flex-direction:column}
-  .install-grid{grid-template-columns:1fr}
-  .faq-grid{grid-template-columns:1fr}
-  .cta-wrap{padding:0 24px 64px}
-  .cta{flex-direction:column;align-items:flex-start;padding:40px 32px}
-  .footer-inner{flex-direction:column;align-items:flex-start;padding:32px 24px}
-}
-
-.hero-title{font-size:clamp(72px,11vw,160px)!important;line-height:.9!important;letter-spacing:-.06em!important;font-weight:900!important}
-section{padding:140px 64px!important}
-.card{
- background:rgba(12,16,24,.62)!important;
- backdrop-filter:blur(18px)!important;
- border:1px solid rgba(255,255,255,.08)!important;
- box-shadow:inset 0 1px rgba(255,255,255,.03),0 20px 60px rgba(0,0,0,.45)!important;
- transition:transform .25s ease, border-color .25s ease;
-}
-.card:hover{transform:translateY(-6px);border-color:rgba(103,232,249,.35)!important}
-.glow-blob{animation:floatGlow 8s ease-in-out infinite}
-.btn-primary{
- border-radius:10px!important;
- box-shadow:0 8px 30px rgba(50,120,255,.35)!important;
- transition:.25s ease!important;
-}
-.btn-primary:hover{transform:translateY(-2px)}
-@keyframes floatGlow{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-20px)}
-}
-
-</style>
-</head>
+    gtag('config', 'UA-74070933-1');
+</script>
+<!-- Cloudflare Turnstile -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer type="0c941e4f66a674d2de8e1d55-text/javascript"></script>
+<!-- End Cloudflare Turnstile -->        <!-- Inline styles -->
+    </head>
 <body>
-
-<!-- NAV -->
-<nav>
-  <div class="nav-left">
-    <div class="nav-logo"><img src="assets/logo.png" alt="Aurian"/></div>
-    <span class="nav-version">V1.0 · EARLY ACCESS</span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="active">Home</a></li>
-    <li><a href="features.html">Features</a></li>
-    <li><a href="docs/tos.html">Docs</a></li>
-    <li><a href="#download" class="nav-dl">Download ↓</a></li>
-  </ul>
-</nav>
-
-<div class="page">
-
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-left">
-    <div class="hero-pill">
-      <span class="hero-pill-dot"></span>
-      Free Minecraft Client · 1.8.9
-    </div>
-    <h1 class="hero-title">
-      Fast,<br>clean,<br>and <span class="accent">completely<br>free.</span>
-    </h1>
-    <p class="hero-sub">Aurian is a free, actively updated Minecraft 1.8.9 client fork focused on performance, stability, and quality-of-life improvements.</p>
-    <div class="hero-btns">
-      <a href="#download" class="btn btn-primary">Download Aurian</a>
-      <a href="#" class="btn btn-ghost">Discord ↗</a>
-    </div>
-    <div class="hero-tags">
-      <div><span>Lunar</span> &nbsp;Vanilla &nbsp;Forge</div>
-      <div><span>1.8.9</span></div>
-      <div><span>FREE</span> &nbsp;always</div>
-    </div>
-  </div>
-
-  <!-- Fake UI Panel (visual) -->
-  <div class="hero-ui">
-    <div class="hero-ui-bar">
-      <div class="hero-ui-dot" style="background:#ff5f57"></div>
-      <div class="hero-ui-dot" style="background:#febc2e;margin:0 4px"></div>
-      <div class="hero-ui-dot" style="background:#28c840"></div>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:10px">Aurian · HUD Editor</span>
-    </div>
-    <div class="ui-panel">
-      <div class="ui-panel-col">
-        <div class="ui-panel-title">Visual <span>×</span></div>
-        <div class="ui-row"><span class="ui-row-name">Custom Crosshair</span><div class="ui-toggle"></div></div>
-        <div class="ui-row"><span class="ui-row-name">Fullbright</span><div class="ui-toggle"></div></div>
-        <div class="ui-row"><span class="ui-row-name">Hit Color</span><div class="ui-toggle off"></div></div>
-        <div class="ui-row"><span class="ui-row-name">Cape Support</span><div class="ui-toggle"></div></div>
-        <div class="ui-row"><span class="ui-row-name">Item Animations</span><div class="ui-toggle"></div></div>
-      </div>
-      <div class="ui-panel-col">
-        <div class="ui-panel-title">HUD <span>×</span></div>
-        <div class="ui-row"><span class="ui-row-name">FPS Counter</span><span class="ui-row-key">F</span></div>
-        <div class="ui-row"><span class="ui-row-name">Coordinates</span><span class="ui-row-key">C</span></div>
-        <div class="ui-row"><span class="ui-row-name">Ping Display</span><span class="ui-row-key">P</span></div>
-        <div class="ui-row"><span class="ui-row-name">Armor HUD</span><span class="ui-row-key">A</span></div>
-        <div class="ui-row"><span class="ui-row-name">Potion HUD</span><span class="ui-row-key">H</span></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-track">
-    <span class="ticker-item">Free Access</span>
-    <span class="ticker-item">Active Updates</span>
-    <span class="ticker-item">Performance First</span>
-    <span class="ticker-item">Windows Support</span>
-    <span class="ticker-item">Lightweight</span>
-    <span class="ticker-item">1.8.9 Client</span>
-    <span class="ticker-item">Lunar · Vanilla · Forge</span>
-    <span class="ticker-item">Quality of Life</span>
-    <span class="ticker-item">Free Access</span>
-    <span class="ticker-item">Active Updates</span>
-    <span class="ticker-item">Performance First</span>
-    <span class="ticker-item">Windows Support</span>
-    <span class="ticker-item">Lightweight</span>
-    <span class="ticker-item">1.8.9 Client</span>
-    <span class="ticker-item">Lunar · Vanilla · Forge</span>
-    <span class="ticker-item">Quality of Life</span>
-  </div>
-</div>
-
-<!-- WHAT YOU GET -->
-<section>
-  <p class="sec-label">[ 01 ] What You Get</p>
-  <h2 class="sec-title">Built different.<br>Runs different.</h2>
-  <p class="sec-sub">Every feature in Aurian is there for a reason. No bloat, no nonsense — just a clean client that works.</p>
-
-  <div class="feat-grid">
-    <div class="feat-card feat-card-big">
-      <div>
-        <div class="feat-card-num">F.00</div>
-        <div class="feat-card-title" style="font-size:22px">A fork that's actually maintained</div>
-        <p class="feat-card-desc" style="max-width:460px">Aurian is built on a solid foundation and kept moving. Updates ship regularly — bug fixes, new features, and performance improvements as the client matures.</p>
-      </div>
-      <div class="feat-card-big-badge">Actively Updated</div>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-card-num">F.01</div>
-      <div class="feat-card-icon">⚡</div>
-      <div class="feat-card-title">Performance Optimized</div>
-      <p class="feat-card-desc">Lightweight by design. Aurian stays out of the way so your game runs the way it should — smooth and consistent.</p>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-card-num">F.02</div>
-      <div class="feat-card-icon">🎨</div>
-      <div class="feat-card-title">HUD Customization</div>
-      <p class="feat-card-desc">FPS counter, coordinates, ping, potion timers, armor HUD — all configurable and draggable to wherever you want them.</p>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-card-num">F.03</div>
-      <div class="feat-card-icon">🔍</div>
-      <div class="feat-card-title">Visual Enhancements</div>
-      <p class="feat-card-desc">Custom crosshair, fullbright, hit colors, item swing animations, cape support and more — all quality-of-life focused.</p>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-card-num">F.04</div>
-      <div class="feat-card-icon">🛠</div>
-      <div class="feat-card-title">Utility Features</div>
-      <p class="feat-card-desc">Zoom, toggle sprint, toggle sneak, block overlay and more. Features that make everyday Minecraft smoother.</p>
-    </div>
-  </div>
-</section>
-
-<hr class="divider"/>
-
-<!-- COMPATIBILITY -->
-<section>
-  <p class="sec-label">[ 02 ] Compatibility</p>
-  <h2 class="sec-title">Where it runs.</h2>
-  <p class="sec-sub">Aurian currently targets the most widely used Minecraft 1.8.9 setup. More launchers and versions are on the roadmap.</p>
-  <div class="compat-row">
-    <div class="compat-pill"><span class="cdot"></span> Windows</div>
-    <div class="compat-pill"><span class="cdot"></span> Lunar Client</div>
-    <div class="compat-pill"><span class="cdot"></span> Vanilla</div>
-    <div class="compat-pill"><span class="cdot"></span> Forge</div>
-    <div class="compat-pill"><span class="cdot orange"></span> 1.8.9 Only</div>
-    <div class="compat-pill"><span class="cdot grey"></span> macOS — Soon</div>
-    <div class="compat-pill"><span class="cdot grey"></span> Linux — Soon</div>
-  </div>
-</section>
-
-<hr class="divider"/>
-
-<!-- INSTALL -->
-<section id="download">
-  <p class="sec-label">[ 03 ] Install</p>
-  <h2 class="sec-title">Three steps.<br>No installer.</h2>
-  <div class="install-grid">
-    <div class="install-steps">
-      <div class="install-step">
-        <span class="install-step-num">01</span>
-        <div>
-          <div class="install-step-title">Download Aurian</div>
-          <p class="install-step-desc">Grab the zip from the button on the right. One file. Drop it wherever you like on your PC.</p>
+<div class="wrapper">
+        <header class="header  welcome-page  ">
+        <div class="container">
+    <div class="header_row">
+        <div class="hover_mobile"></div>
+        <div class="logo_header">
+            <a href="https://www.vape.gg" class="logo"><img src="/img/logo.png" alt=""></a>
         </div>
-      </div>
-      <div class="install-step">
-        <span class="install-step-num">02</span>
-        <div>
-          <div class="install-step-title">Launch Minecraft first</div>
-          <p class="install-step-desc">Open your Minecraft client (Lunar, Vanilla, or Forge) and get to the main menu or in-game.</p>
+        <div class="header_burger">
+            <span></span>
+            <div class="touchable"></div>
         </div>
-      </div>
-      <div class="install-step">
-        <span class="install-step-num">03</span>
-        <div>
-          <div class="install-step-title">Open Aurian & you're in</div>
-          <p class="install-step-desc">Launch Aurian, configure your settings, and play. Updates pull automatically when available.</p>
+        <div class="header_menu">
+            <ul class="menu">
+
+                <li>
+                    <a href="https://www.vape.gg/login" class="menu-767 login_menu">login</a>
+                </li>
+                                    <li>
+                        <a href="https://www.vape.gg/price-v4" class="blue_btn menu-767">Buy now</a>
+                    </li>
+                                <li>
+                    <a href="https://www.vape.gg/features" class="menu-767">features</a>
+                </li>
+                <li>
+                    <a href="https://www.vape.gg/price-v4" class="menu-767">pricing</a>
+                </li>
+                <li>
+                    <a href="https://forums.vape.gg/index.php" class="">forums</a>
+                </li>
+                <li>
+                    <a href="/support">Contact</a>
+                </li>
+                <li>
+                    <a href="https://www.vape.gg/login" class="profile">login</a>
+                </li>
+            </ul>
         </div>
-      </div>
+        <div class="btn_buy_now">
+                            <a href="https://www.vape.gg/price-v4" class="blue_btn">Buy now</a>
+                    </div>
     </div>
-
-    <div class="install-dl-card">
-      <div class="install-dl-tag">
-        <span>Latest</span> · <span>Stable</span>
-        <div class="install-dl-verified">VERIFIED</div>
-      </div>
-      <div class="install-dl-title">Aurian · v1.0</div>
-      <div class="install-dl-sub">Windows only · 1.8.9</div>
-      <div class="dl-option active">
-        <span>Windows</span>
-        <span class="dl-option-right">Download .zip</span>
-      </div>
-      <div class="dl-option disabled">
-        <span>macOS</span>
-        <span class="dl-option-right">unavailable</span>
-      </div>
-      <div class="dl-option disabled">
-        <span>Linux</span>
-        <span class="dl-option-right">unavailable</span>
-      </div>
-      <p style="margin-top:16px;font-size:11px;color:var(--muted);font-family:var(--mono);line-height:1.6">
-        By downloading you agree to our <a href="docs/tos.html" style="color:var(--blue)">Terms of Service</a> and <a href="docs/privacy.html" style="color:var(--blue)">Privacy Policy</a>.
-      </p>
-    </div>
-  </div>
-</section>
-
-<hr class="divider"/>
-
-<!-- FAQ -->
-<section>
-  <p class="sec-label">[ 04 ] Questions</p>
-  <h2 class="sec-title">Stuff people ask.</h2>
-  <div class="faq-grid">
-    <div class="faq-card">
-      <div class="faq-card-x">×</div>
-      <p class="faq-q">Is it actually free?</p>
-      <p class="faq-a">Yes, completely. Aurian is free and will stay free. We may add optional supporter perks in the future but the core client will always be free.</p>
-    </div>
-    <div class="faq-card">
-      <div class="faq-card-x">×</div>
-      <p class="faq-q">Does it affect my FPS?</p>
-      <p class="faq-a">Aurian is built to be lightweight. Most users see no FPS drop — in many cases performance actually improves compared to a vanilla setup.</p>
-    </div>
-    <div class="faq-card">
-      <div class="faq-card-x">×</div>
-      <p class="faq-q">What versions does it work on?</p>
-      <p class="faq-a">1.8.9 currently. It works on Lunar Client, Forge, and Vanilla. Other versions are not supported yet but are on the roadmap.</p>
-    </div>
-    <div class="faq-card">
-      <div class="faq-card-x">×</div>
-      <p class="faq-q">What does the client send back?</p>
-      <p class="faq-a">Your HWID is logged for authentication and abuse prevention. No personal data, no gameplay recording. Read our Privacy Policy for the full breakdown.</p>
-    </div>
-    <div class="faq-card">
-      <div class="faq-card-x">×</div>
-      <p class="faq-q">Is Aurian open source?</p>
-      <p class="faq-a">Not currently. The client is closed source. We may open parts of it in the future as the project matures.</p>
-    </div>
-    <div class="faq-card">
-      <div class="faq-card-x">×</div>
-      <p class="faq-q">Where can I get support?</p>
-      <p class="faq-a">Join the Aurian Discord server. The community and dev team are active there — it's the fastest way to get help or report a bug.</p>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<div class="cta-wrap">
-  <div class="cta">
-    <div>
-      <p class="cta-sec-label">[ 05 ] Download</p>
-      <h2>Free, fast, and<br>ready to go.</h2>
-      <p>Grab Aurian, open Minecraft, and you're in.</p>
-    </div>
-    <div class="cta-btns">
-      <a href="#download" class="btn btn-primary">Download Aurian</a>
-      <a href="#" class="btn btn-ghost">Join Discord ↗</a>
-    </div>
-  </div>
 </div>
+    </header>
+        <section class="main_block main">
+        <div class="container">
+            <div class="main_title">
+                <h1>Like steroids for Minecraft.</h1>
+                <p>Get an unfair advantage over your opponents, while remaining completely undetected</p>
+            </div>
+            
+            <div class="mb_btns">
+                <a href="https://www.vape.gg/price-v4" class="btn btn-info">Buy now</a>
+                <div class="d-none d-md-inline-block">
+                    <a href="https://www.vape.gg/features" class="btn btn-link btn-white">Learn more <i></i></a>
+                </div>
+            </div>
+            <img class="hero_man d-none d-lg-block" src="https://www.vape.gg/img/vape_hero_sword_illustration_final 1.png" alt="">
+            <img class="hero_man d-block d-lg-none" src="https://www.vape.gg/img/character.png" alt="">
+            <!-- <img class="hero_man d-block d-lg-none" src="https://www.vape.gg/img/home-hero-main-tablet.png" alt=""> -->
+        </div>
+        
+    </section>
 
-</div><!-- /page -->
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-logo"><img src="assets/logo.png" alt="Aurian"/></div>
-    <ul class="footer-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="features.html">Features</a></li>
-      <li><a href="docs/tos.html">Terms</a></li>
-      <li><a href="docs/privacy.html">Privacy</a></li>
-      <li><a href="#">Discord</a></li>
-      <li><a href="#">GitHub</a></li>
-    </ul>
-    <span class="footer-copy">© 2026 AurianStudio · All rights reserved</span>
-  </div>
+    <section class="slim-section home_section undetectable-section">
+        <div class="slim-container filled">
+            <div class="slim-section-title text-center">
+                <h2>Undetectable <br class="d-block d-lg-none"> Ghost Modules</h2>
+                <p>Built for practice servers. Bypass anywhere.</p>
+            </div>
+
+            <div class="box-t1">
+                <div class="gradients">
+                    <div class="green"></div>
+                    <div class="red"></div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-5 d-flex flex-column align-items-start">
+                        <div class="section-title-t1 text-black">
+                            <img src="https://www.vape.gg/img/ghost.svg" alt="">
+                            <h3>Made for Closet Cheating</h3>
+                        </div>
+                        
+                        <p style="flex-grow: 2">Vape is designed specifically for the closet cheater, giving you undetectable advantages in combat.</p>
+                        <a href="/features" class="btn btn-dark" style="margin-bottom: 22px;">Explore all features <i></i></a>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <figure class="figure-p-1">
+                            <img src="https://www.vape.gg/img/undetectable-ghost-modules-mockup.png" alt="">
+                        </figure>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 col-lg-6">
+                    <div class="box-t2 bg1">                        
+                        <img src="https://www.vape.gg/img/icon-1.svg" alt="">
+                        <h3>Dependable combat modules.</h3>                        
+                        <p>No updates required. Our combat modules are designed to last, built to work on any anticheat without relying on temporary bypasses.</p>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="box-t2 bg2">                        
+                        <img src="https://www.vape.gg/img/icon-2.svg" alt="">
+                        <h3>Silent aiming.</h3>                        
+                        <p>Enhance your performance with super-human aiming on multiple modules, while retaining full control of your cursor.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <section class="exclusive_features home_section">
+        <div class="container">
+            <div class="section_title text-center">
+                <span>Vape</span>
+                <h2>Exclusive Features</h2>
+                <p>Unique to the Vape experience</p>
+            </div>
+
+            <div class="row subsection">
+
+                <div class="col-12 col-lg-6 order-2 order-lg-1 pl-lg-4">
+                    <div class="ml-lg-2">
+                        <h3>Public Profiles </h3>
+                        <!-- <h3>Public Profiles </h3> -->
+                        <p>Browse trusted profiles made by the community to match your playstyle</p>
+                        <ul class="styled-ul">
+                            <li>Find the best profiles based on reviews</li>
+                            <li>Upload your own profile to the community</li>
+                            <li>Privately share a profile with close friends</li>
+                        </ul>
+
+                        <a href="/features" class="btn btn-info">Learn more <i></i></a>
+
+                    </div>
+
+                </div>
+
+                <div class="col-12 col-lg-6 text-center order-1 order-lg-2">
+                    <img src="https://www.vape.gg/img/public-profiles-mockup.png" alt="">                    
+                </div>
+
+            </div>
+
+            <div class="row subsection">
+                <div class="col-12 col-lg-6">
+                    <img src="https://www.vape.gg/img/inventory-manager-mockup.png" alt="">                    
+                </div>
+
+                <div class="col-12 col-lg-5">
+                    <div class="ml-lg-4 pl-lg-4">
+                        <h3>Inventory Manager</h3>
+                        <p>Automatically manage your inventory</p>
+                        <ul class="styled-ul">
+                            <li>Pick your desired Hotbar item setup</li>
+                            <li>Use enhanced item selection to specify exact items</li>
+                            <li>Drop unneeded items with Inventory Filters</li>
+                        </ul>
+
+                        <a href="/features" class="btn btn-info">Learn more <i></i></a>
+                    </div>
+                </div>                
+            </div>
+
+        </div>
+    </section>
+
+    <section class="take_look home_section">
+        <div class="container">
+            <div class="section_title text-center">
+                <span>VAPE</span>
+                <h2>Take a closer look.</h2>
+                <p>A few more things we have to offer</p>
+            </div>
+
+            <div class="row">
+                <div class="col-12 col-md-6 col-lg-4 pl-lg-2 pr-lg-3 d-flex">
+                    <div class="box-t3 mt-large">
+                        <img class="moved" src="https://www.vape.gg/img/legit-mode-graphic.png" alt="">
+                        <h3>Legit mod menu</h3>                        
+                        <p>Contains all your favorite core HUD mods and general client enhancements. Includes banned mods like Freelook and NoClickDelay.</p>
+                        <a class="btn btn-link" href="/features">Learn more <i></i></a>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4 pl-lg-2 pr-lg-3 d-flex">
+                    <div class="box-t3 mt-large">
+                        <img class="moved" src="https://www.vape.gg/img/friends-graphic.png" alt="">
+                        <h3>Friends </h3>                        
+                        <p>Connect and collab with your friends using Vape online.</p>
+                        <a class="btn btn-link" href="/features">Learn more <i></i></a>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4 pl-lg-2 pr-lg-3 d-flex">
+                    <div class="box-t3 mt-large">
+                        <img class="moved" src="https://www.vape.gg/img/injectable-client-graphic.png" alt="">
+                        <h3>Injectable client</h3>                        
+                        <p>Run Vape alongside any mods and different launchers without any extra configuration from you.</p>
+                        <a class="btn btn-link" href="/features">Learn more <i></i></a>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4 pl-lg-2 pr-lg-3 d-flex">
+                    <div class="box-t3">
+                        <img class="icon" src="https://www.vape.gg/img/icon-3.svg" alt="">
+                        <h3>Multi version support</h3>                        
+                        <p>Includes the same experience you can expect from Vape, across popular game versions such as 1.8.9, 1.7, and more.</p>
+                        <a class="btn btn-link" href="/features">Learn more <i></i></a>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4 pl-lg-2 pr-lg-3 d-flex">
+                    <div class="box-t3">
+                        <img class="icon" src="https://www.vape.gg/img/icon-4.svg" alt="">
+                        <h3>Active support.</h3>                        
+                        <p>What ever the issue may be, we’re here to help you solve the issue.</p>
+                        <a class="btn btn-link" href="/features">Learn more <i></i></a>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4 pl-lg-2 pr-lg-3 d-flex">
+                    <div class="box-t3">
+                        <img class="icon" src="https://www.vape.gg/img/icon-5.svg" alt="">
+                        <h3>Trusted provider.</h3>                        
+                        <p>We’ve been your leading and most trusted ghost client provider since 2015.</p>
+                        <a class="btn btn-link" href="/features">Learn more <i></i></a>
+                    </div>
+                </div>
+    
+            </div>
+
+        </div>
+    </section>
+
+    <section class="container home_section">
+
+        <div class="cta_section">
+            <div class="row">
+                <div class="col-12 col-md-6 col-lg-7">
+                    <h3>Like Steroids for Minecraft</h3>
+                    <p class="color-black">Get an unfair advantage over your opponents, while <br> remaining completely undetected</p>
+                    <a href="/price-v4" class="btn btn-dark">Get started <i></i></a>
+                </div>
+            </div>            
+            <img src="https://www.vape.gg/img/character.png" alt="">
+            
+        </div>
+
+    </section>
+
+    
+        <footer>
+    <div class="container">
+        <div class="footer_logo"><img src="/img/logo.png" alt=""></div>
+        <div class="footer_row">
+            <div class="footer_menu">
+                <div class="footer_menu_main">
+                    <ul>
+                        <li>
+                            <a class="fm_left underline_blue" href="https://www.vape.gg">Home</a>
+                        </li>
+                        <li>
+                            <a class="fm_left underline_blue" href="https://www.vape.gg/features">Features</a>
+                        </li>
+                        <li>
+                            <a class="fm_left underline_blue" href="https://www.vape.gg/price-v4">Pricing</a>
+                        </li>
+                        <li>
+                            <a class="fm_left underline_blue" href="https://www.vape.gg/contact">Contact</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="footer_menu_sub">
+                    <ul>
+                                                    <li>
+                                <a class="fm_right underline_blue" href="https://www.vape.gg/login">Login</a>
+                            </li>
+                                                <li>
+                            <a class="fm_right underline_blue" href="https://www.vape.gg/account/products">Download</a>
+                        </li>
+                        <li>
+                            <a class="fm_right underline_blue" href="https://forums.vape.gg/index.php">Forums</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer_info">
+                <ul class="footer_info">
+                    <li>
+                        <a class="fm_right underline_blue" href="https://www.vape.gg/tos">Terms of Service</a>
+                    </li>
+                    <li>
+                        <a class="fm_right underline_blue" href="https://www.vape.gg/tos">Privacy Policy</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">Copyright 2015-2026 Manthe Industries, LLC. All rights reserved.</div>
+    </div>
 </footer>
+    <script src="/js/redesign.js?id=2266e3329828fe46d46e" type="0c941e4f66a674d2de8e1d55-text/javascript"></script>
+    </div>
+<div class="popup_wrapper">
+    <form action="https://www.vape.gg/discount-apply" method="POST" class="code_form">
+        <input type="hidden" name="_token" value="IeyI0p2JPI14dsaKtlCcvInTsoUDZ8OuzgMxMNkZ">        <a href="#" class=popup_close><span></span><span></span></a>
+        <div class="code_form_title">
+            Enter your code
+        </div>
+        <div class="discount-popup-form-input-container">
+            <input id="discount-code-input" type="text" name="code" class="input " placeholder="Enter code" value="">
+            <div class="input-slider"></div>
+        </div>
+        <div class="submit-container">
+            <button id="discount-code-submit" type="submit" class="blue_btn">
+                Submit
+            </button>
+        </div>
+    </form>
+</div>
 
-</body>
+<script src="/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="0c941e4f66a674d2de8e1d55-|49" defer></script></body>
 </html>
