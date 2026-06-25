@@ -1,0 +1,2162 @@
+/*
+ * ============================================================================
+ *  AURIAN CLIENT LOADER v1.0
+ *  Aurian Studios - Single File Deployment
+ *  Embedded Payload | External GUI | Memory Injection
+ * ============================================================================
+ */
+
+#pragma once
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
+#include <windows.h>
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_internal.h>
+#include <nlohmann/json.hpp>
+#include <curl/curl.h>
+#include <stb_image.h>
+#include <tlhelp32.h>
+#include <psapi.h>
+#include <shlwapi.h>
+#include <commdlg.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <fstream>
+#include <sstream>
+#include <thread>
+#include <mutex>
+#include <chrono>
+#include <algorithm>
+#include <filesystem>
+#include <atomic>
+#include <functional>
+
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "urlmon.lib")
+#pragma comment(lib, "winhttp.lib")
+
+namespace fs = std::filesystem;
+using json = nlohmann::json;
+
+// ============================================================================
+//  RESOURCE IDS - Embedded Assets
+// ============================================================================
+#define IDR_PAYLOAD_DLL    101
+#define IDR_LOGO_PNG       102
+#define IDR_AURIAN_PNG     103
+
+// ============================================================================
+//  AURIAN COLOR PALETTE
+// ============================================================================
+namespace AurianColors {
+    constexpr ImU32 Background       = IM_COL32(12, 12, 18, 240);
+    constexpr ImU32 PanelBg         = IM_COL32(18, 18, 28, 220);
+    constexpr ImU32 PanelBorder     = IM_COL32(40, 80, 160, 80);
+    constexpr ImU32 AccentPrimary   = IM_COL32(60, 140, 255, 255);
+    constexpr ImU32 AccentGlow      = IM_COL32(60, 140, 255, 40);
+    constexpr ImU32 AccentSecondary = IM_COL32(100, 180, 255, 200);
+    constexpr ImU32 TextPrimary     = IM_COL32(220, 225, 235, 255);
+    constexpr ImU32 TextSecondary   = IM_COL32(140, 150, 170, 255);
+    constexpr ImU32 TextDisabled    = IM_COL32(80, 85, 100, 255);
+    constexpr ImU32 Success         = IM_COL32(80, 200, 120, 255);
+    constexpr ImU32 Error           = IM_COL32(255, 80, 80, 255);
+    constexpr ImU32 Warning         = IM_COL32(255, 180, 60, 255);
+    constexpr ImU32 ToggleOn        = IM_COL32(60, 140, 255, 255);
+    constexpr ImU32 ToggleOff       = IM_COL32(50, 50, 65, 255);
+    constexpr ImU32 SliderTrack     = IM_COL32(30, 30, 45, 255);
+    constexpr ImU32 SliderFill      = IM_COL32(60, 140, 255, 255);
+    constexpr ImU32 InputBg         = IM_COL32(22, 22, 35, 255);
+    constexpr ImU32 InputBorder     = IM_COL32(45, 55, 80, 180);
+    constexpr ImU32 InputBorderActive = IM_COL32(60, 140, 255, 200);
+    constexpr ImU32 TabActive       = IM_COL32(60, 140, 255, 30);
+    constexpr ImU32 TabHover        = IM_COL32(60, 140, 255, 15);
+    constexpr ImU32 ScrollbarBg     = IM_COL32(15, 15, 22, 200);
+    constexpr ImU32 ScrollbarGrab   = IM_COL32(60, 140, 255, 120);
+}
+
+// ============================================================================
+//  LOGGING SYSTEM
+// ============================================================================
+enum class LogType { Info, Success, Error, Warning };
+
+struct LogEntry {
+    LogType type;
+    std::string message;
+    std::chrono::system_clock::time_point timestamp;
+};
+
+class Logger {
+private:
+    std::vector<LogEntry> m_Logs;
+    std::mutex m_Mutex;
+    bool m_AutoScroll = true;
+
+    static const char* GetPrefix(LogType type) {
+        switch (type) {
+            case LogType::Success: return "[+]";
+            case LogType::Error:   return "[-]";
+            case LogType::Warning: return "[!]";
+            default:               return "[*]";
+        }
+    }
+
+    static ImU32 GetColor(LogType type) {
+        switch (type) {
+            case LogType::Success: return AurianColors::Success;
+            case LogType::Error:   return AurianColors::Error;
+            case LogType::Warning: return AurianColors::Warning;
+            default:               return AurianColors::TextSecondary;
+        }
+    }
+
+public:
+    void Log(LogType type, const std::string& message) {
+        std::lock_guard<std::mutex> lock(m_Mutex);
+        m_Logs.push_back({ type, message, std::chrono::system_clock::now() });
+        if (m_Logs.size() > 500) m_Logs.erase(m_Logs.begin());
+    }
+
+    void Render() {
+        std::lock_guard<std::mutex> lock(m_Mutex);
+        
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
+        
+        for (const auto& entry : m_Logs) {
+            ImGui::PushStyleColor(ImGuiCol_Text, GetColor(entry.type));
+            ImGui::TextUnformatted(GetPrefix(entry.type));
+            ImGui::SameLine();
+            ImGui::TextUnformatted(entry.message.c_str());
+            ImGui::PopStyleColor();
+        }
+        
+        ImGui::PopStyleVar();
+        
+        if (m_AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+            ImGui::SetScrollHereY(1.0f);
+    }
+
+    void Clear() {
+        std::lock_guard<std::mutex> lock(m_Mutex);
+        m_Logs.clear();
+    }
+};
+
+inline Logger g_Logger;
+
+// ============================================================================
+//  CONFIGURATION SYSTEM
+// ============================================================================
+struct ModuleConfig {
+    bool enabled = false;
+    std::map<std::string, float> floatSettings;
+    std::map<std::string, int> intSettings;
+    std::map<std::string, std::string> stringSettings;
+};
+
+struct UserProfile {
+    std::string username;
+    std::string licenseKey;
+    std::string plan;
+    std::string expiry;
+    std::string hwid;
+};
+
+struct AurianConfig {
+    UserProfile user;
+    std::map<std::string, ModuleConfig> modules;
+    std::map<std::string, int> keybinds;
+    std::vector<std::string> friends;
+    std::string activeProfile = "Default";
+    std::string theme = "Default";
+    
+    // GUI settings
+    float windowOpacity = 0.95f;
+    bool blurEnabled = true;
+};
+
+class ConfigManager {
+private:
+    fs::path m_ConfigDir;
+    fs::path m_ProfilesDir;
+    fs::path m_SettingsFile;
+    AurianConfig m_Config;
+
+    void EnsureDirectories() {
+        m_ConfigDir = fs::path(getenv("APPDATA")) / "AurianClient";
+        m_ProfilesDir = m_ConfigDir / "profiles";
+        m_SettingsFile = m_ConfigDir / "settings.json";
+        
+        fs::create_directories(m_ConfigDir);
+        fs::create_directories(m_ProfilesDir);
+    }
+
+public:
+    void Initialize() {
+        EnsureDirectories();
+        LoadSettings();
+        g_Logger.Log(LogType::Success, "Config system initialized");
+    }
+
+    void LoadSettings() {
+        if (!fs::exists(m_SettingsFile)) {
+            SaveSettings();
+            return;
+        }
+
+        try {
+            std::ifstream file(m_SettingsFile);
+            json j = json::parse(file);
+            
+            if (j.contains("user")) {
+                m_Config.user.username = j["user"].value("username", "");
+                m_Config.user.licenseKey = j["user"].value("licenseKey", "");
+                m_Config.user.plan = j["user"].value("plan", "");
+                m_Config.user.expiry = j["user"].value("expiry", "");
+                m_Config.user.hwid = j["user"].value("hwid", "");
+            }
+            
+            m_Config.activeProfile = j.value("activeProfile", "Default");
+            m_Config.theme = j.value("theme", "Default");
+            m_Config.windowOpacity = j.value("windowOpacity", 0.95f);
+            m_Config.blurEnabled = j.value("blurEnabled", true);
+
+            if (j.contains("keybinds")) {
+                for (auto& [key, value] : j["keybinds"].items()) {
+                    m_Config.keybinds[key] = value.get<int>();
+                }
+            }
+
+            if (j.contains("friends")) {
+                m_Config.friends = j["friends"].get<std::vector<std::string>>();
+            }
+        }
+        catch (const json::exception& e) {
+            g_Logger.Log(LogType::Error, std::string("Config parse error: ") + e.what());
+        }
+    }
+
+    void SaveSettings() {
+        json j;
+        
+        j["user"]["username"] = m_Config.user.username;
+        j["user"]["licenseKey"] = m_Config.user.licenseKey;
+        j["user"]["plan"] = m_Config.user.plan;
+        j["user"]["expiry"] = m_Config.user.expiry;
+        j["user"]["hwid"] = m_Config.user.hwid;
+        j["activeProfile"] = m_Config.activeProfile;
+        j["theme"] = m_Config.theme;
+        j["windowOpacity"] = m_Config.windowOpacity;
+        j["blurEnabled"] = m_Config.blurEnabled;
+        
+        j["keybinds"] = m_Config.keybinds;
+        j["friends"] = m_Config.friends;
+
+        std::ofstream file(m_SettingsFile);
+        file << j.dump(4);
+    }
+
+    void SaveProfile(const std::string& name) {
+        json j;
+        j["modules"] = json::object();
+        
+        for (auto& [modName, modConfig] : m_Config.modules) {
+            json mod;
+            mod["enabled"] = modConfig.enabled;
+            mod["floats"] = modConfig.floatSettings;
+            mod["ints"] = modConfig.intSettings;
+            mod["strings"] = modConfig.stringSettings;
+            j["modules"][modName] = mod;
+        }
+        
+        j["keybinds"] = m_Config.keybinds;
+        j["friends"] = m_Config.friends;
+
+        fs::path profilePath = m_ProfilesDir / (name + ".json");
+        std::ofstream file(profilePath);
+        file << j.dump(4);
+        
+        g_Logger.Log(LogType::Success, "Profile saved: " + name);
+    }
+
+    void LoadProfile(const std::string& name) {
+        fs::path profilePath = m_ProfilesDir / (name + ".json");
+        if (!fs::exists(profilePath)) {
+            g_Logger.Log(LogType::Error, "Profile not found: " + name);
+            return;
+        }
+
+        try {
+            std::ifstream file(profilePath);
+            json j = json::parse(file);
+
+            if (j.contains("modules")) {
+                for (auto& [modName, modJson] : j["modules"].items()) {
+                    m_Config.modules[modName].enabled = modJson.value("enabled", false);
+                    if (modJson.contains("floats")) {
+                        for (auto& [key, val] : modJson["floats"].items())
+                            m_Config.modules[modName].floatSettings[key] = val.get<float>();
+                    }
+                    if (modJson.contains("ints")) {
+                        for (auto& [key, val] : modJson["ints"].items())
+                            m_Config.modules[modName].intSettings[key] = val.get<int>();
+                    }
+                    if (modJson.contains("strings")) {
+                        for (auto& [key, val] : modJson["strings"].items())
+                            m_Config.modules[modName].stringSettings[key] = val.get<std::string>();
+                    }
+                }
+            }
+
+            if (j.contains("keybinds")) {
+                for (auto& [key, val] : j["keybinds"].items())
+                    m_Config.keybinds[key] = val.get<int>();
+            }
+
+            if (j.contains("friends"))
+                m_Config.friends = j["friends"].get<std::vector<std::string>>();
+
+            m_Config.activeProfile = name;
+            SaveSettings();
+            g_Logger.Log(LogType::Success, "Profile loaded: " + name);
+        }
+        catch (const json::exception& e) {
+            g_Logger.Log(LogType::Error, std::string("Profile load error: ") + e.what());
+        }
+    }
+
+    std::vector<std::string> GetProfileList() {
+        std::vector<std::string> profiles;
+        for (const auto& entry : fs::directory_iterator(m_ProfilesDir)) {
+            if (entry.path().extension() == ".json") {
+                profiles.push_back(entry.path().stem().string());
+            }
+        }
+        return profiles;
+    }
+
+    AurianConfig& GetConfig() { return m_Config; }
+};
+
+inline ConfigManager g_Config;
+
+// ============================================================================
+//  HWID GENERATION
+// ============================================================================
+class HWIDGenerator {
+public:
+    static std::string Generate() {
+        std::string hwid;
+        
+        // CPU ID
+        int cpuInfo[4] = { 0 };
+        __cpuid(cpuInfo, 0);
+        for (int i = 0; i < 4; i++) {
+            hwid += std::to_string(cpuInfo[i]) + "-";
+        }
+
+        // Volume serial number (C:)
+        DWORD volumeSerial = 0;
+        GetVolumeInformationA("C:\\", nullptr, 0, &volumeSerial, nullptr, nullptr, nullptr, 0);
+        hwid += std::to_string(volumeSerial) + "-";
+
+        // Motherboard baseboard serial
+        HKEY hKey;
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, 
+            "HARDWARE\\DESCRIPTION\\System\\BIOS\\BaseBoard", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+            char serial[256] = { 0 };
+            DWORD size = sizeof(serial);
+            RegQueryValueExA(hKey, "SerialNumber", nullptr, nullptr, (LPBYTE)serial, &size);
+            hwid += serial;
+            RegCloseKey(hKey);
+        }
+
+        // Simple hash to normalize length
+        std::hash<std::string> hasher;
+        return std::to_string(hasher(hwid));
+    }
+};
+
+// ============================================================================
+//  AUTHENTICATION SYSTEM
+// ============================================================================
+class AuthSystem {
+private:
+    std::string m_ApiEndpoint = "https://api.aurianclient.com/v1";
+    std::string m_SessionToken;
+    bool m_IsAuthenticated = false;
+
+    static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
+        size_t totalSize = size * nmemb;
+        userp->append((char*)contents, totalSize);
+        return totalSize;
+    }
+
+    bool MakeRequest(const std::string& endpoint, const json& payload, json& response) {
+        CURL* curl = curl_easy_init();
+        if (!curl) return false;
+
+        std::string url = m_ApiEndpoint + endpoint;
+        std::string payloadStr = payload.dump();
+        std::string responseData;
+
+        struct curl_slist* headers = nullptr;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        headers = curl_slist_append(headers, "User-Agent: AurianLoader/1.0");
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payloadStr.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseData);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+
+        CURLcode res = curl_easy_perform(curl);
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+
+        if (res != CURLE_OK) {
+            g_Logger.Log(LogType::Error, "Auth request failed: " + std::string(curl_easy_strerror(res)));
+            return false;
+        }
+
+        try {
+            response = json::parse(responseData);
+            return true;
+        }
+        catch (...) {
+            g_Logger.Log(LogType::Error, "Auth response parse failed");
+            return false;
+        }
+    }
+
+public:
+    bool Login(const std::string& username, const std::string& password, const std::string& licenseKey) {
+        g_Logger.Log(LogType::Info, "Authenticating...");
+
+        json payload = {
+            {"username", username},
+            {"password", password},
+            {"licenseKey", licenseKey},
+            {"hwid", HWIDGenerator::Generate()}
+        };
+
+        json response;
+        if (!MakeRequest("/auth/login", payload, response)) {
+            g_Logger.Log(LogType::Error, "Authentication failed");
+            return false;
+        }
+
+        bool success = response.value("success", false);
+        if (!success) {
+            std::string error = response.value("error", "Unknown error");
+            g_Logger.Log(LogType::Error, "Authentication failed: " + error);
+            return false;
+        }
+
+        m_SessionToken = response.value("token", "");
+        m_IsAuthenticated = true;
+
+        g_Config.GetConfig().user.username = username;
+        g_Config.GetConfig().user.licenseKey = licenseKey;
+        g_Config.GetConfig().user.plan = response.value("plan", "None");
+        g_Config.GetConfig().user.expiry = response.value("expiry", "Never");
+        g_Config.GetConfig().user.hwid = HWIDGenerator::Generate();
+        g_Config.SaveSettings();
+
+        g_Logger.Log(LogType::Success, "Authenticated as " + username);
+        return true;
+    }
+
+    bool Register(const std::string& username, const std::string& password, const std::string& licenseKey) {
+        g_Logger.Log(LogType::Info, "Registering account...");
+
+        json payload = {
+            {"username", username},
+            {"password", password},
+            {"licenseKey", licenseKey},
+            {"hwid", HWIDGenerator::Generate()}
+        };
+
+        json response;
+        if (!MakeRequest("/auth/register", payload, response)) {
+            g_Logger.Log(LogType::Error, "Registration failed");
+            return false;
+        }
+
+        bool success = response.value("success", false);
+        if (!success) {
+            std::string error = response.value("error", "Unknown error");
+            g_Logger.Log(LogType::Error, "Registration failed: " + error);
+            return false;
+        }
+
+        g_Logger.Log(LogType::Success, "Account registered successfully");
+        return Login(username, password, licenseKey);
+    }
+
+    bool RedeemKey(const std::string& code) {
+        if (!m_IsAuthenticated) {
+            g_Logger.Log(LogType::Error, "Must be logged in to redeem");
+            return false;
+        }
+
+        json payload = {
+            {"token", m_SessionToken},
+            {"code", code}
+        };
+
+        json response;
+        if (!MakeRequest("/auth/redeem", payload, response)) {
+            g_Logger.Log(LogType::Error, "Redeem failed");
+            return false;
+        }
+
+        bool success = response.value("success", false);
+        if (success) {
+            g_Config.GetConfig().user.plan = response.value("plan", g_Config.GetConfig().user.plan);
+            g_Config.GetConfig().user.expiry = response.value("expiry", g_Config.GetConfig().user.expiry);
+            g_Config.SaveSettings();
+            g_Logger.Log(LogType::Success, "Key redeemed successfully");
+        } else {
+            g_Logger.Log(LogType::Error, "Redeem failed: " + response.value("error", "Unknown"));
+        }
+
+        return success;
+    }
+
+    bool IsAuthenticated() const { return m_IsAuthenticated; }
+    const std::string& GetToken() const { return m_SessionToken; }
+};
+
+inline AuthSystem g_Auth;
+
+// ============================================================================
+//  MEMORY INJECTOR - Manual Mapping
+// ============================================================================
+class MemoryInjector {
+private:
+    struct ManualMapData {
+        LPVOID ImageBase;
+        DWORD ImageSize;
+        FARPROC LoadLibraryA;
+        FARPROC GetProcAddress;
+        FARPROC GetModuleHandleA;
+    };
+
+    typedef BOOL(WINAPI* DllMainFunc)(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
+
+    static DWORD __stdcall LoaderThread(LPVOID parameter) {
+        ManualMapData* data = (ManualMapData*)parameter;
+        BYTE* pBase = (BYTE*)data->ImageBase;
+
+        // Get PEB to resolve imports without LoadLibrary
+        PPEB pPeb = (PPEB)__readgsqword(0x60);
+        PPEB_LDR_DATA pLdr = pPeb->Ldr;
+
+        // Parse and resolve imports
+        IMAGE_DOS_HEADER* pDosHeader = (IMAGE_DOS_HEADER*)pBase;
+        IMAGE_NT_HEADERS* pNtHeader = (IMAGE_NT_HEADERS*)(pBase + pDosHeader->e_lfanew);
+        IMAGE_IMPORT_DESCRIPTOR* pImportDesc = (IMAGE_IMPORT_DESCRIPTOR*)(pBase + 
+            pNtHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+
+        while (pImportDesc->Name) {
+            char* szModName = (char*)(pBase + pImportDesc->Name);
+            HMODULE hMod = (HMODULE)GetModuleHandleA(szModName);
+
+            if (!hMod) {
+                hMod = (HMODULE)data->LoadLibraryA(szModName);
+                if (!hMod) {
+                    pImportDesc++;
+                    continue;
+                }
+            }
+
+            DWORD* pThunkRef = (DWORD*)(pBase + pImportDesc->OriginalFirstThunk);
+            DWORD* pFuncRef = (DWORD*)(pBase + pImportDesc->FirstThunk);
+
+            if (!pThunkRef) pThunkRef = pFuncRef;
+
+            for (; *pThunkRef; pThunkRef++, pFuncRef++) {
+                if (IMAGE_SNAP_BY_ORDINAL(*pThunkRef)) {
+                    *pFuncRef = (DWORD)data->GetProcAddress(hMod, (LPCSTR)IMAGE_ORDINAL(*pThunkRef));
+                } else {
+                    IMAGE_IMPORT_BY_NAME* pImport = (IMAGE_IMPORT_BY_NAME*)(pBase + (*pThunkRef & 0x7FFFFFFF));
+                    *pFuncRef = (DWORD)data->GetProcAddress(hMod, pImport->Name);
+                }
+            }
+            pImportDesc++;
+        }
+
+        // Handle TLS callbacks
+        IMAGE_TLS_DIRECTORY* pTLS = (IMAGE_TLS_DIRECTORY*)(pBase + 
+            pNtHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
+        
+        if (pTLS && pTLS->AddressOfCallBacks) {
+            PIMAGE_TLS_CALLBACK* pCallback = (PIMAGE_TLS_CALLBACK*)pTLS->AddressOfCallBacks;
+            while (*pCallback) {
+                (*pCallback)(pBase, DLL_PROCESS_ATTACH, nullptr);
+                pCallback++;
+            }
+        }
+
+        // Call DllMain
+        DllMainFunc pDllMain = (DllMainFunc)(pBase + pNtHeader->OptionalHeader.AddressOfEntryPoint);
+        pDllMain((HINSTANCE)pBase, DLL_PROCESS_ATTACH, nullptr);
+
+        HeapFree(GetProcessHeap(), 0, data);
+        return 0;
+    }
+
+    static LRESULT __stdcall Shellcode(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        return DefWindowProcA(hWnd, uMsg, wParam, lParam);
+    }
+
+public:
+    bool Inject(DWORD targetPid) {
+        g_Logger.Log(LogType::Info, "Locating embedded payload...");
+
+        // Load embedded DLL from resources
+        HRSRC hResource = FindResource(NULL, MAKEINTRESOURCE(IDR_PAYLOAD_DLL), "DLL");
+        if (!hResource) {
+            g_Logger.Log(LogType::Error, "Embedded payload not found");
+            return false;
+        }
+
+        HGLOBAL hMemory = LoadResource(NULL, hResource);
+        if (!hMemory) {
+            g_Logger.Log(LogType::Error, "Failed to load resource");
+            return false;
+        }
+
+        DWORD dllSize = SizeofResource(NULL, hResource);
+        LPVOID dllData = LockResource(hMemory);
+
+        g_Logger.Log(LogType::Success, "Payload located (" + std::to_string(dllSize) + " bytes)");
+
+        // Validate PE header
+        IMAGE_DOS_HEADER* pDosHeader = (IMAGE_DOS_HEADER*)dllData;
+        if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
+            g_Logger.Log(LogType::Error, "Invalid PE signature");
+            return false;
+        }
+
+        IMAGE_NT_HEADERS* pNtHeader = (IMAGE_NT_HEADERS*)((BYTE*)dllData + pDosHeader->e_lfanew);
+        if (pNtHeader->Signature != IMAGE_NT_SIGNATURE) {
+            g_Logger.Log(LogType::Error, "Invalid NT signature");
+            return false;
+        }
+
+        // Open target process
+        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, targetPid);
+        if (!hProcess) {
+            g_Logger.Log(LogType::Error, "Failed to open process");
+            return false;
+        }
+
+        g_Logger.Log(LogType::Success, "Process handle acquired");
+
+        // Allocate memory for DLL
+        DWORD imageSize = pNtHeader->OptionalHeader.SizeOfImage;
+        LPVOID pRemoteBase = VirtualAllocEx(hProcess, nullptr, imageSize, 
+            MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+        if (!pRemoteBase) {
+            g_Logger.Log(LogType::Error, "Memory allocation failed");
+            CloseHandle(hProcess);
+            return false;
+        }
+
+        g_Logger.Log(LogType::Success, "Memory allocated at 0x" + 
+            std::string(reinterpret_cast<char*>(pRemoteBase), 16));
+
+        // Write headers
+        SIZE_T bytesWritten;
+        if (!WriteProcessMemory(hProcess, pRemoteBase, dllData, 
+            pNtHeader->OptionalHeader.SizeOfHeaders, &bytesWritten)) {
+            g_Logger.Log(LogType::Error, "Failed to write headers");
+            VirtualFreeEx(hProcess, pRemoteBase, 0, MEM_RELEASE);
+            CloseHandle(hProcess);
+            return false;
+        }
+
+        // Write sections
+        IMAGE_SECTION_HEADER* pSectionHeader = IMAGE_FIRST_SECTION(pNtHeader);
+        for (int i = 0; i < pNtHeader->FileHeader.NumberOfSections; i++) {
+            if (pSectionHeader[i].SizeOfRawData == 0) continue;
+
+            LPVOID pSectionDest = (BYTE*)pRemoteBase + pSectionHeader[i].VirtualAddress;
+            LPVOID pSectionSrc = (BYTE*)dllData + pSectionHeader[i].PointerToRawData;
+
+            WriteProcessMemory(hProcess, pSectionDest, pSectionSrc, 
+                pSectionHeader[i].SizeOfRawData, &bytesWritten);
+        }
+
+        g_Logger.Log(LogType::Success, "Sections mapped");
+
+        // Allocate and write loader data
+        ManualMapData* pData = (ManualMapData*)HeapAlloc(GetProcessHeap(), 0, sizeof(ManualMapData));
+        pData->ImageBase = pRemoteBase;
+        pData->ImageSize = imageSize;
+        pData->LoadLibraryA = GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA");
+        pData->GetProcAddress = GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetProcAddress");
+        pData->GetModuleHandleA = GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetModuleHandleA");
+
+        LPVOID pRemoteData = VirtualAllocEx(hProcess, nullptr, sizeof(ManualMapData),
+            MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        WriteProcessMemory(hProcess, pRemoteData, pData, sizeof(ManualMapData), &bytesWritten);
+
+        // Allocate shellcode and loader thread
+        LPVOID pShellcode = VirtualAllocEx(hProcess, nullptr, 0x1000,
+            MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+        WriteProcessMemory(hProcess, pShellcode, LoaderThread, 0x1000, &bytesWritten);
+
+        // Create remote thread
+        HANDLE hThread = CreateRemoteThread(hProcess, nullptr, 0,
+            (LPTHREAD_START_ROUTINE)pShellcode, pRemoteData, 0, nullptr);
+
+        if (!hThread) {
+            g_Logger.Log(LogType::Error, "Remote thread creation failed");
+            VirtualFreeEx(hProcess, pRemoteBase, 0, MEM_RELEASE);
+            CloseHandle(hProcess);
+            return false;
+        }
+
+        g_Logger.Log(LogType::Success, "Payload mapped successfully");
+        g_Logger.Log(LogType::Success, "Hooks initializing...");
+
+        WaitForSingleObject(hThread, 5000);
+        CloseHandle(hThread);
+        HeapFree(GetProcessHeap(), 0, pData);
+        
+        // Don't close process handle - payload needs it
+        return true;
+    }
+
+    DWORD FindMinecraftProcess() {
+        g_Logger.Log(LogType::Info, "Searching for Minecraft 1.8.9...");
+
+        HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (hSnapshot == INVALID_HANDLE_VALUE) {
+            g_Logger.Log(LogType::Error, "Failed to create process snapshot");
+            return 0;
+        }
+
+        PROCESSENTRY32W pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32W);
+
+        DWORD pid = 0;
+        if (Process32FirstW(hSnapshot, &pe32)) {
+            do {
+                std::wstring exeName = pe32.szExeFile;
+                if (exeName == L"javaw.exe") {
+                    // Verify it's Minecraft by checking window title
+                    HWND hWindow = FindWindowW(L"GLFW30", nullptr);
+                    if (!hWindow) hWindow = FindWindowW(L"LWJGL", nullptr);
+                    if (!hWindow) hWindow = FindWindowW(nullptr, L"Minecraft 1.8.9");
+                    
+                    if (hWindow) {
+                        DWORD windowPid;
+                        GetWindowThreadProcessId(hWindow, &windowPid);
+                        if (windowPid == pe32.th32ProcessID) {
+                            pid = pe32.th32ProcessID;
+                            break;
+                        }
+                    }
+                }
+            } while (Process32NextW(hSnapshot, &pe32));
+        }
+
+        CloseHandle(hSnapshot);
+
+        if (pid) {
+            g_Logger.Log(LogType::Success, "Minecraft found (PID: " + std::to_string(pid) + ")");
+        } else {
+            g_Logger.Log(LogType::Error, "Minecraft not found - launch 1.8.9 first");
+        }
+
+        return pid;
+    }
+};
+
+inline MemoryInjector g_Injector;
+
+// ============================================================================
+//  IMGUI CUSTOM WIDGETS - Glassmorphism Style
+// ============================================================================
+namespace AurianWidgets {
+    
+    bool ToggleButton(const char* label, bool* v) {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (window->SkipItems) return false;
+
+        ImGuiContext& g = *GImGui;
+        const ImGuiStyle& style = g.Style;
+        const ImGuiID id = window->GetID(label);
+        const ImVec2 label_size = ImGui::CalcTextSize(label, nullptr, true);
+        
+        const float height = ImGui::GetFrameHeight() * 0.75f;
+        const float width = height * 1.8f;
+        const float radius = height * 0.5f;
+
+        const ImVec2 pos = window->DC.CursorPos;
+        const ImRect total_bb(pos, ImVec2(pos.x + width + style.ItemInnerSpacing.x + label_size.x, pos.y + height));
+        
+        ImGui::ItemSize(total_bb, style.FramePadding.y);
+        if (!ImGui::ItemAdd(total_bb, id)) return false;
+
+        bool hovered, held;
+        bool pressed = ImGui::ButtonBehavior(total_bb, id, &hovered, &held);
+        
+        if (pressed) {
+            *v = !(*v);
+            ImGui::MarkItemEdited(id);
+        }
+
+        // Animation
+        static std::map<ImGuiID, float> animStates;
+        float& anim = animStates[id];
+        float target = *v ? 1.0f : 0.0f;
+        anim += (target - anim) * 0.15f;
+
+        // Background
+        ImU32 bgCol = *v ? AurianColors::ToggleOn : AurianColors::ToggleOff;
+        if (hovered) {
+            bgCol = *v ? IM_COL32(80, 160, 255, 255) : IM_COL32(65, 65, 80, 255);
+        }
+
+        ImDrawList* dl = window->DrawList;
+        dl->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + height), bgCol, radius);
+
+        // Glow effect when on
+        if (*v) {
+            dl->AddRectFilledMultiColor(
+                pos, ImVec2(pos.x + width, pos.y + height),
+                IM_COL32(60, 140, 255, 30), IM_COL32(60, 140, 255, 10),
+                IM_COL32(60, 140, 255, 10), IM_COL32(60, 140, 255, 30)
+            );
+        }
+
+        // Knob
+        float knobX = pos.x + radius + anim * (width - height);
+        dl->AddCircleFilled(ImVec2(knobX, pos.y + radius), radius - 2, IM_COL32(240, 242, 248, 255));
+
+        // Label
+        ImVec2 labelPos = ImVec2(pos.x + width + style.ItemInnerSpacing.x, pos.y + (height - label_size.y) * 0.5f);
+        dl->AddText(labelPos, *v ? AurianColors::AccentPrimary : AurianColors::TextSecondary, label);
+
+        return pressed;
+    }
+
+    bool StyledSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.1f") {
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, AurianColors::SliderTrack);
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, AurianColors::SliderFill);
+        ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, AurianColors::AccentSecondary);
+        ImGui::PushStyleColor(ImGuiCol_Border, AurianColors::InputBorder);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 4.0f);
+        
+        bool changed = ImGui::SliderFloat(label, v, v_min, v_max, format);
+        
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(4);
+        return changed;
+    }
+
+    bool StyledInputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = 0) {
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, AurianColors::InputBg);
+        ImGui::PushStyleColor(ImGuiCol_Border, AurianColors::InputBorder);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, AurianColors::InputBorderActive);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 8));
+
+        bool changed = ImGui::InputText(label, buf, buf_size, flags);
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
+        return changed;
+    }
+
+    bool StyledButton(const char* label, ImVec2 size = ImVec2(0, 0), bool accent = true) {
+        ImGui::PushStyleColor(ImGuiCol_Button, accent ? AurianColors::AccentPrimary : AurianColors::PanelBg);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, accent ? AurianColors::AccentSecondary : IM_COL32(40, 40, 55, 255));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, accent ? IM_COL32(40, 100, 200, 255) : IM_COL32(50, 50, 65, 255));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(16, 8));
+
+        bool clicked = ImGui::Button(label, size);
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
+        return clicked;
+    }
+
+    void SectionHeader(const char* text) {
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::AccentPrimary);
+        ImGui::SetFontScale(0.9f);
+        ImGui::TextUnformatted(text);
+        ImGui::SetFontScale(1.0f);
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+        ImGui::Spacing();
+    }
+}
+
+// ============================================================================
+//  NOTIFICATION SYSTEM (In-Loader)
+// ============================================================================
+struct Notification {
+    std::string message;
+    LogType type;
+    float alpha = 1.0f;
+    float timer = 4.0f;
+    float slideOffset = 0.0f;
+};
+
+class NotificationManager {
+private:
+    std::vector<Notification> m_Notifications;
+    static constexpr float NOTIFICATION_WIDTH = 280.0f;
+    static constexpr float NOTIFICATION_HEIGHT = 40.0f;
+
+public:
+    void Push(const std::string& message, LogType type = LogType::Info) {
+        Notification notif;
+        notif.message = message;
+        notif.type = type;
+        notif.slideOffset = NOTIFICATION_WIDTH;
+        m_Notifications.push_back(notif);
+        
+        if (m_Notifications.size() > 5) {
+            m_Notifications.erase(m_Notifications.begin());
+        }
+    }
+
+    void Render(float deltaTime) {
+        if (m_Notifications.empty()) return;
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        float startX = displaySize.x - NOTIFICATION_WIDTH - 20.0f;
+        float startY = 20.0f;
+
+        for (int i = m_Notifications.size() - 1; i >= 0; i--) {
+            Notification& notif = m_Notifications[i];
+            
+            // Update
+            notif.timer -= deltaTime;
+            notif.slideOffset += (0.0f - notif.slideOffset) * 0.12f;
+            
+            if (notif.timer < 1.0f) {
+                notif.alpha = notif.timer;
+                notif.slideOffset += (NOTIFICATION_WIDTH - notif.slideOffset) * 0.08f;
+            }
+
+            if (notif.timer <= 0.0f) {
+                m_Notifications.erase(m_Notifications.begin() + i);
+                continue;
+            }
+
+            // Get color
+            ImU32 bgColor, borderColor, textColor;
+            switch (notif.type) {
+                case LogType::Success:
+                    bgColor = IM_COL32(20, 60, 40, (int)(220 * notif.alpha));
+                    borderColor = IM_COL32(80, 200, 120, (int)(150 * notif.alpha));
+                    textColor = IM_COL32(80, 200, 120, (int)(255 * notif.alpha));
+                    break;
+                case LogType::Error:
+                    bgColor = IM_COL32(60, 20, 20, (int)(220 * notif.alpha));
+                    borderColor = IM_COL32(255, 80, 80, (int)(150 * notif.alpha));
+                    textColor = IM_COL32(255, 80, 80, (int)(255 * notif.alpha));
+                    break;
+                case LogType::Warning:
+                    bgColor = IM_COL32(60, 50, 20, (int)(220 * notif.alpha));
+                    borderColor = IM_COL32(255, 180, 60, (int)(150 * notif.alpha));
+                    textColor = IM_COL32(255, 180, 60, (int)(255 * notif.alpha));
+                    break;
+                default:
+                    bgColor = IM_COL32(20, 30, 60, (int)(220 * notif.alpha));
+                    borderColor = IM_COL32(60, 140, 255, (int)(150 * notif.alpha));
+                    textColor = IM_COL32(60, 140, 255, (int)(255 * notif.alpha));
+            }
+
+            float yPos = startY + i * (NOTIFICATION_HEIGHT + 8.0f);
+            ImVec2 pos(startX + notif.slideOffset, yPos);
+
+            ImDrawList* dl = ImGui::GetBackgroundDrawList();
+            
+            // Background with rounded corners
+            dl->AddRectFilled(pos, ImVec2(pos.x + NOTIFICATION_WIDTH, pos.y + NOTIFICATION_HEIGHT), 
+                bgColor, 8.0f);
+            dl->AddRect(pos, ImVec2(pos.x + NOTIFICATION_WIDTH, pos.y + NOTIFICATION_HEIGHT), 
+                borderColor, 8.0f, 0, 1.5f);
+
+            // Text
+            const char* prefix = "";
+            switch (notif.type) {
+                case LogType::Success: prefix = "[+] "; break;
+                case LogType::Error: prefix = "[-] "; break;
+                case LogType::Warning: prefix = "[!] "; break;
+                default: prefix = "[*] "; break;
+            }
+
+            std::string fullText = prefix + notif.message;
+            dl->AddText(ImVec2(pos.x + 12, pos.y + (NOTIFICATION_HEIGHT - ImGui::GetTextLineHeight()) * 0.5f), 
+                textColor, fullText.c_str());
+        }
+    }
+};
+
+inline NotificationManager g_Notifications;
+
+// ============================================================================
+//  MODULE DEFINITIONS
+// ============================================================================
+enum class ModuleCategory { Combat, Render, Utility, Movement };
+
+struct ModuleSetting {
+    std::string name;
+    enum Type { Toggle, Float, Int, String, Enum } type;
+    float floatValue = 0.0f;
+    float minFloat = 0.0f, maxFloat = 100.0f;
+    int intValue = 0;
+    std::string stringValue;
+    std::vector<std::string> enumValues;
+};
+
+struct Module {
+    std::string name;
+    ModuleCategory category;
+    std::vector<ModuleSetting> settings;
+    int keybind = 0;
+    bool enabled = false;
+
+    ModuleSetting* FindSetting(const std::string& name) {
+        for (auto& s : settings) {
+            if (s.name == name) return &s;
+        }
+        return nullptr;
+    }
+};
+
+class ModuleManager {
+private:
+    std::vector<Module> m_Modules;
+
+    void InitializeModules() {
+        // Combat
+        Module aimAssist{ "AimAssist", ModuleCategory::Combat };
+        aimAssist.settings = {
+            {"Enabled", ModuleSetting::Toggle},
+            {"Speed", ModuleSetting::Float, 50.0f, 0.0f, 100.0f},
+            {"FOV", ModuleSetting::Float, 90.0f, 30.0f, 180.0f},
+            {"Range", ModuleSetting::Float, 4.5f, 1.0f, 6.0f},
+            {"Smoothing", ModuleSetting::Float, 65.0f, 1.0f, 100.0f}
+        };
+        m_Modules.push_back(aimAssist);
+
+        Module autoClicker{ "AutoClicker", ModuleCategory::Combat };
+        autoClicker.settings = {
+            {"Min CPS", ModuleSetting::Float, 8.0f, 1.0f, 20.0f},
+            {"Max CPS", ModuleSetting::Float, 12.0f, 1.0f, 20.0f},
+            {"Jitter", ModuleSetting::Toggle},
+            {"Randomize", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(autoClicker);
+
+        Module reach{ "Reach", ModuleCategory::Combat };
+        reach.settings = {
+            {"Range", ModuleSetting::Float, 3.1f, 3.0f, 6.0f},
+            {"Legit Mode", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(reach);
+
+        Module velocity{ "Velocity", ModuleCategory::Combat };
+        velocity.settings = {
+            {"Horizontal", ModuleSetting::Float, 0.0f, 0.0f, 100.0f},
+            {"Vertical", ModuleSetting::Float, 0.0f, 0.0f, 100.0f},
+            {"Chance", ModuleSetting::Float, 100.0f, 0.0f, 100.0f}
+        };
+        m_Modules.push_back(velocity);
+
+        Module wtap{ "WTap", ModuleCategory::Combat };
+        wtap.settings = {
+            {"Delay", ModuleSetting::Float, 150.0f, 50.0f, 500.0f},
+            {"Chance", ModuleSetting::Float, 100.0f, 0.0f, 100.0f}
+        };
+        m_Modules.push_back(wtap);
+
+        // Render
+        Module esp{ "ESP", ModuleCategory::Render };
+        esp.settings = {
+            {"Mode", ModuleSetting::Enum, 0.0f}, // 0=Box, 1=Outline, 2=2D
+            {"Players", ModuleSetting::Toggle},
+            {"Mobs", ModuleSetting::Toggle},
+            {"Items", ModuleSetting::Toggle}
+        };
+        esp.settings[0].enumValues = {"Box", "Outline", "2D"};
+        m_Modules.push_back(esp);
+
+        Module tracers{ "Tracers", ModuleCategory::Render };
+        tracers.settings = {
+            {"Width", ModuleSetting::Float, 1.5f, 0.5f, 5.0f},
+            {"Color Mode", ModuleSetting::Enum, 0.0f}
+        };
+        tracers.settings[1].enumValues = {"Distance", "Health", "Static"};
+        m_Modules.push_back(tracers);
+
+        Module nametags{ "NameTags", ModuleCategory::Render };
+        nametags.settings = {
+            {"Show Health", ModuleSetting::Toggle},
+            {"Show Armor", ModuleSetting::Toggle},
+            {"Show Distance", ModuleSetting::Toggle},
+            {"Scale", ModuleSetting::Float, 1.0f, 0.5f, 2.0f}
+        };
+        m_Modules.push_back(nametags);
+
+        Module fullbright{ "Fullbright", ModuleCategory::Render };
+        fullbright.settings = {
+            {"Gamma", ModuleSetting::Float, 100.0f, 1.0f, 100.0f}
+        };
+        m_Modules.push_back(fullbright);
+
+        Module search{ "Search", ModuleCategory::Render };
+        search.settings = {
+            {"Mode", ModuleSetting::Enum, 0.0f}
+        };
+        search.settings[0].enumValues = {"Diamond", "Emerald", "Gold", "Iron", "Spawner", "Chest"};
+        m_Modules.push_back(search);
+
+        // Utility
+        Module scaffold{ "Scaffold", ModuleCategory::Utility };
+        scaffold.settings = {
+            {"Delay", ModuleSetting::Float, 50.0f, 0.0f, 200.0f},
+            {"Tower Mode", ModuleSetting::Toggle},
+            {"Expand", ModuleSetting::Float, 1.0f, 1.0f, 6.0f},
+            {"SafeWalk", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(scaffold);
+
+        Module chestSteal{ "ChestSteal", ModuleCategory::Utility };
+        chestSteal.settings = {
+            {"Delay", ModuleSetting::Float, 100.0f, 0.0f, 500.0f},
+            {"Randomize", ModuleSetting::Toggle},
+            {"Smart Steal", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(chestSteal);
+
+        Module blink{ "Blink", ModuleCategory::Utility };
+        blink.settings = {
+            {"Max Packets", ModuleSetting::Int, 20, 1, 100},
+            {"Visualize", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(blink);
+
+        Module refill{ "Refill", ModuleCategory::Utility };
+        refill.settings = {
+            {"Health Trigger", ModuleSetting::Float, 8.0f, 1.0f, 20.0f},
+            {"Potion Priority", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(refill);
+
+        Module throwpot{ "Throwpot", ModuleCategory::Utility };
+        throwpot.settings = {
+            {"Delay", ModuleSetting::Float, 50.0f, 0.0f, 200.0f},
+            {"Auto Switch Back", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(throwpot);
+
+        // Movement
+        Module sprint{ "Sprint", ModuleCategory::Movement };
+        sprint.settings = {};
+        m_Modules.push_back(sprint);
+
+        Module speed{ "Speed", ModuleCategory::Movement };
+        speed.settings = {
+            {"Mode", ModuleSetting::Enum, 0.0f},
+            {"Speed", ModuleSetting::Float, 1.5f, 0.5f, 5.0f}
+        };
+        speed.settings[0].enumValues = {"Vanilla", "Strafe", "LowHop"};
+        m_Modules.push_back(speed);
+
+        Module flight{ "Flight", ModuleCategory::Movement };
+        flight.settings = {
+            {"Speed", ModuleSetting::Float, 2.0f, 0.5f, 10.0f},
+            {"AntiKick", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(flight);
+
+        Module flyScaffold{ "Scaffold (Move)", ModuleCategory::Movement };
+        flyScaffold.settings = {
+            {"Use separate from Utility Scaffold", ModuleSetting::Toggle}
+        };
+        m_Modules.push_back(flyScaffold);
+
+        // Load saved states
+        LoadFromConfig();
+    }
+
+    void LoadFromConfig() {
+        auto& modules = g_Config.GetConfig().modules;
+        for (auto& mod : m_Modules) {
+            if (modules.count(mod.name)) {
+                mod.enabled = modules[mod.name].enabled;
+                for (auto& setting : mod.settings) {
+                    if (setting.type == ModuleSetting::Float) {
+                        if (modules[mod.name].floatSettings.count(setting.name))
+                            setting.floatValue = modules[mod.name].floatSettings[setting.name];
+                    }
+                    else if (setting.type == ModuleSetting::Int) {
+                        if (modules[mod.name].intSettings.count(setting.name))
+                            setting.intValue = modules[mod.name].intSettings[setting.name];
+                    }
+                    else if (setting.type == ModuleSetting::String || setting.type == ModuleSetting::Enum) {
+                        if (modules[mod.name].stringSettings.count(setting.name))
+                            setting.stringValue = modules[mod.name].stringSettings[setting.name];
+                    }
+                }
+            }
+        }
+
+        auto& keybinds = g_Config.GetConfig().keybinds;
+        for (auto& mod : m_Modules) {
+            if (keybinds.count(mod.name))
+                mod.keybind = keybinds[mod.name];
+        }
+    }
+
+    void SaveToConfig() {
+        auto& modules = g_Config.GetConfig().modules;
+        for (auto& mod : m_Modules) {
+            ModuleConfig& cfg = modules[mod.name];
+            cfg.enabled = mod.enabled;
+            for (auto& setting : mod.settings) {
+                if (setting.type == ModuleSetting::Float)
+                    cfg.floatSettings[setting.name] = setting.floatValue;
+                else if (setting.type == ModuleSetting::Int)
+                    cfg.intSettings[setting.name] = setting.intValue;
+                else if (setting.type == ModuleSetting::String || setting.type == ModuleSetting::Enum)
+                    cfg.stringSettings[setting.name] = setting.stringValue;
+            }
+        }
+
+        auto& keybinds = g_Config.GetConfig().keybinds;
+        for (auto& mod : m_Modules) {
+            keybinds[mod.name] = mod.keybind;
+        }
+
+        g_Config.SaveSettings();
+    }
+
+public:
+    void Initialize() {
+        InitializeModules();
+        g_Logger.Log(LogType::Success, "Module system initialized (" + 
+            std::to_string(m_Modules.size()) + " modules)");
+    }
+
+    std::vector<Module>& GetModules() { return m_Modules; }
+    
+    std::vector<Module*> GetModulesByCategory(ModuleCategory cat) {
+        std::vector<Module*> result;
+        for (auto& mod : m_Modules) {
+            if (mod.category == cat) result.push_back(&mod);
+        }
+        return result;
+    }
+
+    Module* FindModule(const std::string& name) {
+        for (auto& mod : m_Modules) {
+            if (mod.name == name) return &mod;
+        }
+        return nullptr;
+    }
+
+    void ToggleModule(const std::string& name) {
+        if (Module* mod = FindModule(name)) {
+            mod->enabled = !mod->enabled;
+            SaveToConfig();
+            
+            if (mod->enabled)
+                g_Notifications.Push(name + " Enabled", LogType::Success);
+            else
+                g_Notifications.Push(name + " Disabled", LogType::Info);
+        }
+    }
+
+    void SaveAll() { SaveToConfig(); }
+};
+
+inline ModuleManager g_Modules;
+
+// ============================================================================
+//  FRIEND SYSTEM
+// ============================================================================
+class FriendSystem {
+public:
+    void AddFriend(const std::string& name) {
+        auto& friends = g_Config.GetConfig().friends;
+        if (std::find(friends.begin(), friends.end(), name) == friends.end()) {
+            friends.push_back(name);
+            g_Config.SaveSettings();
+            g_Notifications.Push("Friend Added: " + name, LogType::Success);
+            g_Logger.Log(LogType::Success, "Friend added: " + name);
+        }
+    }
+
+    void RemoveFriend(const std::string& name) {
+        auto& friends = g_Config.GetConfig().friends;
+        auto it = std::find(friends.begin(), friends.end(), name);
+        if (it != friends.end()) {
+            friends.erase(it);
+            g_Config.SaveSettings();
+            g_Notifications.Push("Friend Removed: " + name, LogType::Warning);
+            g_Logger.Log(LogType::Warning, "Friend removed: " + name);
+        }
+    }
+
+    bool IsFriend(const std::string& name) {
+        auto& friends = g_Config.GetConfig().friends;
+        return std::find(friends.begin(), friends.end(), name) != friends.end();
+    }
+
+    const std::vector<std::string>& GetFriends() {
+        return g_Config.GetConfig().friends;
+    }
+};
+
+inline FriendSystem g_Friends;
+
+// ============================================================================
+//  MAIN APPLICATION STATE
+// ============================================================================
+enum class AppState {
+    Splash,
+    Login,
+    Dashboard,
+    Injecting
+};
+
+struct AppStateData {
+    AppState currentState = AppState::Splash;
+    float splashTimer = 0.0f;
+    float splashFade = 0.0f;
+    bool splashComplete = false;
+    
+    // Login fields
+    char username[128] = "";
+    char password[128] = "";
+    char licenseKey[64] = "";
+    char redeemCode[64] = "";
+    bool showRedeem = false;
+    
+    // Injection state
+    bool isInjected = false;
+    DWORD mcPid = 0;
+    
+    // Tab state
+    int activeTab = 0;
+    int settingsTab = 0;
+    
+    // Profile input
+    char profileName[64] = "";
+    
+    // Friend input
+    char friendName[64] = "";
+    
+    // Logo texture
+    ID3D11ShaderResourceView* logoTexture = nullptr;
+    int logoWidth = 0, logoHeight = 0;
+};
+
+inline AppStateData g_State;
+
+// ============================================================================
+//  RESOURCE LOADER
+// ============================================================================
+class ResourceLoader {
+public:
+    static ID3D11ShaderResourceView* LoadTextureFromResource(ID3D11Device* device, int resourceId, int& outWidth, int& outHeight) {
+        HRSRC hResource = FindResource(NULL, MAKEINTRESOURCE(resourceId), "PNG");
+        if (!hResource) return nullptr;
+
+        HGLOBAL hMemory = LoadResource(NULL, hResource);
+        if (!hMemory) return nullptr;
+
+        DWORD size = SizeofResource(NULL, hResource);
+        void* data = LockResource(hMemory);
+
+        int width, height, channels;
+        unsigned char* pixels = stbi_load_from_memory((unsigned char*)data, size, &width, &height, &channels, 4);
+        if (!pixels) return nullptr;
+
+        D3D11_TEXTURE2D_DESC desc = {};
+        desc.Width = width;
+        desc.Height = height;
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+        D3D11_SUBRESOURCE_DATA initData = {};
+        initData.pSysMem = pixels;
+        initData.SysMemPitch = width * 4;
+
+        ID3D11Texture2D* texture = nullptr;
+        device->CreateTexture2D(&desc, &initData, &texture);
+
+        ID3D11ShaderResourceView* srv = nullptr;
+        if (texture) {
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = desc.Format;
+            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MipLevels = 1;
+            device->CreateShaderResourceView(texture, &srvDesc, &srv);
+            texture->Release();
+        }
+
+        stbi_image_free(pixels);
+        outWidth = width;
+        outHeight = height;
+        return srv;
+    }
+};
+
+// ============================================================================
+//  GUI RENDERER - Main Application
+// ============================================================================
+class AurianGUI {
+private:
+    HWND m_Hwnd;
+    ID3D11Device* m_Device = nullptr;
+    ID3D11DeviceContext* m_Context = nullptr;
+    IDXGISwapChain* m_SwapChain = nullptr;
+    ID3D11RenderTargetView* m_RenderTargetView = nullptr;
+    bool m_Running = true;
+    std::chrono::steady_clock::time_point m_LastFrame;
+
+    void ApplyAurianStyle() {
+        ImGuiStyle& style = ImGui::GetStyle();
+        
+        style.WindowRounding = 12.0f;
+        style.FrameRounding = 6.0f;
+        style.GrabRounding = 6.0f;
+        style.TabRounding = 8.0f;
+        style.ScrollbarRounding = 8.0f;
+        style.PopupRounding = 8.0f;
+        style.ChildRounding = 8.0f;
+
+        style.WindowPadding = ImVec2(16, 16);
+        style.FramePadding = ImVec2(10, 6);
+        style.ItemSpacing = ImVec2(8, 6);
+        style.ItemInnerSpacing = ImVec2(6, 4);
+        style.IndentSpacing = 16.0f;
+        style.ScrollbarSize = 12.0f;
+        style.GrabMinSize = 12.0f;
+
+        style.WindowBorderSize = 1.0f;
+        style.FrameBorderSize = 0.0f;
+        style.PopupBorderSize = 1.0f;
+
+        style.WindowMinSize = ImVec2(400, 300);
+
+        // Colors
+        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.047f, 0.047f, 0.071f, 0.94f);
+        style.Colors[ImGuiCol_ChildBg] = ImVec4(0.047f, 0.047f, 0.071f, 0.94f);
+        style.Colors[ImGuiCol_PopupBg] = ImVec4(0.06f, 0.06f, 0.09f, 0.95f);
+        style.Colors[ImGuiCol_Border] = ImVec4(0.16f, 0.31f, 0.63f, 0.31f);
+        style.Colors[ImGuiCol_BorderShadow] = ImVec4(0, 0, 0, 0);
+        style.Colors[ImGuiCol_FrameBg] = ImVec4(0.086f, 0.086f, 0.137f, 1.0f);
+        style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.11f, 0.11f, 0.18f, 1.0f);
+        style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.13f, 0.13f, 0.22f, 1.0f);
+        style.Colors[ImGuiCol_TitleBg] = ImVec4(0.047f, 0.047f, 0.071f, 1.0f);
+        style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.047f, 0.047f, 0.071f, 1.0f);
+        style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.047f, 0.047f, 0.071f, 0.5f);
+        style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.047f, 0.047f, 0.071f, 0.8f);
+        style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.059f, 0.059f, 0.086f, 0.8f);
+        style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.235f, 0.549f, 1.0f, 0.47f);
+        style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.235f, 0.549f, 1.0f, 0.7f);
+        style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.235f, 0.549f, 1.0f, 0.9f);
+        style.Colors[ImGuiCol_CheckMark] = ImVec4(0.235f, 0.549f, 1.0f, 1.0f);
+        style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.235f, 0.549f, 1.0f, 1.0f);
+        style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.392f, 0.706f, 1.0f, 1.0f);
+        style.Colors[ImGuiCol_Button] = ImVec4(0.235f, 0.549f, 1.0f, 1.0f);
+        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.392f, 0.706f, 1.0f, 1.0f);
+        style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.157f, 0.392f, 0.784f, 1.0f);
+        style.Colors[ImGuiCol_Header] = ImVec4(0.235f, 0.549f, 1.0f, 0.12f);
+        style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.235f, 0.549f, 1.0f, 0.2f);
+        style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.235f, 0.549f, 1.0f, 0.3f);
+        style.Colors[ImGuiCol_Separator] = ImVec4(0.16f, 0.31f, 0.63f, 0.31f);
+        style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.235f, 0.549f, 1.0f, 0.5f);
+        style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.235f, 0.549f, 1.0f, 0.8f);
+        style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.235f, 0.549f, 1.0f, 0.2f);
+        style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.235f, 0.549f, 1.0f, 0.5f);
+        style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.235f, 0.549f, 1.0f, 0.8f);
+        style.Colors[ImGuiCol_Tab] = ImVec4(0.047f, 0.047f, 0.071f, 0.8f);
+        style.Colors[ImGuiCol_TabHovered] = ImVec4(0.235f, 0.549f, 1.0f, 0.12f);
+        style.Colors[ImGuiCol_TabSelected] = ImVec4(0.235f, 0.549f, 1.0f, 0.25f);
+        style.Colors[ImGuiCol_TabDimmed] = ImVec4(0.047f, 0.047f, 0.071f, 0.6f);
+        style.Colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.235f, 0.549f, 1.0f, 0.15f);
+        style.Colors[ImGuiCol_DockingPreview] = ImVec4(0.235f, 0.549f, 1.0f, 0.4f);
+        style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.047f, 0.047f, 0.071f, 1.0f);
+        style.Colors[ImGuiCol_Text] = ImVec4(0.863f, 0.882f, 0.922f, 1.0f);
+        style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.314f, 0.333f, 0.392f, 1.0f);
+        style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.235f, 0.549f, 1.0f, 0.25f);
+        style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.235f, 0.549f, 1.0f, 0.5f);
+        style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.235f, 0.549f, 1.0f, 0.7f);
+        style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0, 0, 0, 0.3f);
+        style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.5f);
+    }
+
+    bool CreateDeviceD3D() {
+        DXGI_SWAP_CHAIN_DESC sd = {};
+        sd.BufferCount = 2;
+        sd.BufferDesc.Width = 0;
+        sd.BufferDesc.Height = 0;
+        sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.BufferDesc.RefreshRate.Numerator = 60;
+        sd.BufferDesc.RefreshRate.Denominator = 1;
+        sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        sd.OutputWindow = m_Hwnd;
+        sd.SampleDesc.Count = 1;
+        sd.SampleDesc.Quality = 0;
+        sd.Windowed = TRUE;
+        sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+
+        UINT createDeviceFlags = 0;
+        D3D_FEATURE_LEVEL featureLevel;
+        const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0 };
+
+        HRESULT res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+            createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd,
+            &m_SwapChain, &m_Device, &featureLevel, &m_Context);
+
+        if (res != S_OK) return false;
+        return true;
+    }
+
+    void CreateRenderTarget() {
+        ID3D11Texture2D* backBuffer;
+        m_SwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+        m_Device->CreateRenderTargetView(backBuffer, nullptr, &m_RenderTargetView);
+        backBuffer->Release();
+    }
+
+    void CleanupDeviceD3D() {
+        if (m_RenderTargetView) { m_RenderTargetView->Release(); m_RenderTargetView = nullptr; }
+        if (m_SwapChain) { m_SwapChain->Release(); m_SwapChain = nullptr; }
+        if (m_Context) { m_Context->Release(); m_Context = nullptr; }
+        if (m_Device) { m_Device->Release(); m_Device = nullptr; }
+    }
+
+    void RenderSplashScreen(float deltaTime) {
+        g_State.splashTimer += deltaTime;
+        g_State.splashFade = std::min(g_State.splashFade + deltaTime * 1.5f, 1.0f);
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        ImDrawList* dl = ImGui::GetBackgroundDrawList();
+
+        // Background
+        dl->AddRectFilled(ImVec2(0, 0), displaySize, IM_COL32(12, 12, 18, 255));
+
+        // Center content
+        float centerX = displaySize.x * 0.5f;
+        float centerY = displaySize.y * 0.5f;
+
+        // Logo
+        if (g_State.logoTexture) {
+            float logoScale = 0.6f;
+            float logoW = g_State.logoWidth * logoScale;
+            float logoH = g_State.logoHeight * logoScale;
+            dl->AddImage(g_State.logoTexture, 
+                ImVec2(centerX - logoW * 0.5f, centerY - logoH * 0.5f - 20),
+                ImVec2(centerX + logoW * 0.5f, centerY + logoH * 0.5f - 20),
+                IM_COL32(255, 255, 255, (int)(255 * g_State.splashFade)));
+        }
+
+        // "Initializing Aurian..." text
+        const char* loadingText = "Initializing Aurian...";
+        ImVec2 textSize = ImGui::CalcTextSize(loadingText);
+        dl->AddText(ImVec2(centerX - textSize.x * 0.5f, centerY + 80),
+            IM_COL32(140, 150, 170, (int)(255 * g_State.splashFade)), loadingText);
+
+        // Loading spinner
+        float spinnerAngle = g_State.splashTimer * 4.0f;
+        float spinnerRadius = 12.0f;
+        float spinnerX = centerX;
+        float spinnerY = centerY + 115.0f;
+
+        for (int i = 0; i < 8; i++) {
+            float angle = spinnerAngle + i * (IM_PI * 2.0f / 8.0f);
+            float x = spinnerX + cosf(angle) * spinnerRadius;
+            float y = spinnerY + sinf(angle) * spinnerRadius;
+            float alpha = (1.0f - (float)i / 8.0f) * g_State.splashFade;
+            dl->AddCircleFilled(ImVec2(x, y), 2.5f, IM_COL32(60, 140, 255, (int)(alpha * 255)));
+        }
+
+        // Complete after 2.5 seconds
+        if (g_State.splashTimer > 2.5f && !g_State.splashComplete) {
+            g_State.splashComplete = true;
+            g_State.currentState = AppState::Login;
+            
+            // Auto-fill if saved
+            if (!g_Config.GetConfig().user.username.empty()) {
+                strncpy(g_State.username, g_Config.GetConfig().user.username.c_str(), sizeof(g_State.username) - 1);
+            }
+            if (!g_Config.GetConfig().user.licenseKey.empty()) {
+                strncpy(g_State.licenseKey, g_Config.GetConfig().user.licenseKey.c_str(), sizeof(g_State.licenseKey) - 1);
+            }
+        }
+    }
+
+    void RenderLoginScreen() {
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        float windowW = 420.0f;
+        float windowH = g_State.showRedeem ? 520.0f : 460.0f;
+        ImVec2 windowPos((displaySize.x - windowW) * 0.5f, (displaySize.y - windowH) * 0.5f);
+
+        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(windowW, windowH), ImGuiCond_Always);
+        
+        ImGui::Begin("##Login", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | 
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus);
+
+        // Logo at top
+        if (g_State.logoTexture) {
+            float logoScale = 0.35f;
+            float logoW = g_State.logoWidth * logoScale;
+            float logoH = g_State.logoHeight * logoScale;
+            ImGui::SetCursorPosX((windowW - logoW) * 0.5f);
+            ImGui::Image(g_State.logoTexture, ImVec2(logoW, logoH));
+        }
+
+        ImGui::Spacing();
+        ImGui::Spacing();
+
+        // Title
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextPrimary);
+        ImGui::SetCursorPosX((windowW - ImGui::CalcTextSize("Aurian Client").x) * 0.5f);
+        ImGui::SetFontScale(1.2f);
+        ImGui::TextUnformatted("Aurian Client");
+        ImGui::SetFontScale(1.0f);
+        ImGui::PopStyleColor();
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        // Login form
+        AurianWidgets::StyledInputText("Username", g_State.username, sizeof(g_State.username));
+        AurianWidgets::StyledInputText("Password", g_State.password, sizeof(g_State.password), ImGuiInputTextFlags_Password);
+        AurianWidgets::StyledInputText("License Key", g_State.licenseKey, sizeof(g_State.licenseKey));
+
+        ImGui::Spacing();
+
+        // Buttons
+        float buttonWidth = (windowW - 48.0f) / 3.0f;
+        
+        if (AurianWidgets::StyledButton("Login", ImVec2(buttonWidth, 35))) {
+            if (strlen(g_State.username) > 0 && strlen(g_State.password) > 0 && strlen(g_State.licenseKey) > 0) {
+                if (g_Auth.Login(g_State.username, g_State.password, g_State.licenseKey)) {
+                    g_State.currentState = AppState::Dashboard;
+                    g_Notifications.Push("Welcome, " + std::string(g_State.username), LogType::Success);
+                }
+            } else {
+                g_Notifications.Push("Fill in all fields", LogType::Warning);
+            }
+        }
+        ImGui::SameLine();
+        if (AurianWidgets::StyledButton("Register", ImVec2(buttonWidth, 35))) {
+            if (strlen(g_State.username) > 0 && strlen(g_State.password) > 0 && strlen(g_State.licenseKey) > 0) {
+                if (g_Auth.Register(g_State.username, g_State.password, g_State.licenseKey)) {
+                    g_State.currentState = AppState::Dashboard;
+                    g_Notifications.Push("Account created!", LogType::Success);
+                }
+            } else {
+                g_Notifications.Push("Fill in all fields", LogType::Warning);
+            }
+        }
+        ImGui::SameLine();
+        if (AurianWidgets::StyledButton("Redeem", ImVec2(buttonWidth, 35), false)) {
+            g_State.showRedeem = !g_State.showRedeem;
+        }
+
+        // Redeem section
+        if (g_State.showRedeem) {
+            ImGui::Spacing();
+            AurianWidgets::SectionHeader("Redeem Key");
+            AurianWidgets::StyledInputText("Redeem Code", g_State.redeemCode, sizeof(g_State.redeemCode));
+            
+            if (AurianWidgets::StyledButton("Redeem Code", ImVec2(-1, 32))) {
+                if (strlen(g_State.redeemCode) > 0) {
+                    g_Auth.RedeemKey(g_State.redeemCode);
+                    memset(g_State.redeemCode, 0, sizeof(g_State.redeemCode));
+                }
+            }
+        }
+
+        // Footer
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextDisabled);
+        float footerWidth = ImGui::CalcTextSize("Powered by Aurian Studios").x;
+        ImGui::SetCursorPosX((windowW - footerWidth) * 0.5f);
+        ImGui::TextUnformatted("Powered by Aurian Studios");
+        ImGui::PopStyleColor();
+
+        ImGui::End();
+    }
+
+    void RenderDashboard() {
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        float mainW = 850.0f;
+        float mainH = 580.0f;
+        ImVec2 mainPos((displaySize.x - mainW) * 0.5f, (displaySize.y - mainH) * 0.5f);
+
+        ImGui::SetNextWindowPos(mainPos, ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(mainW, mainH), ImGuiCond_Always);
+
+        ImGui::Begin("##Dashboard", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+        // Header with logo
+        if (g_State.logoTexture) {
+            float logoScale = 0.2f;
+            float logoW = g_State.logoWidth * logoScale;
+            float logoH = g_State.logoHeight * logoScale;
+            ImGui::Image(g_State.logoTexture, ImVec2(logoW, logoH));
+            ImGui::SameLine();
+        }
+
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextPrimary);
+        ImGui::SetFontScale(1.1f);
+        ImGui::TextUnformatted("Aurian Client");
+        ImGui::SetFontScale(0.8f);
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextDisabled);
+        ImGui::TextUnformatted("v1.0");
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::SetFontScale(1.0f);
+
+        // User info in header
+        ImGui::SameLine(ImGui::GetWindowWidth() - 300);
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextSecondary);
+        ImGui::Text("User: %s", g_Config.GetConfig().user.username.c_str());
+        ImGui::SameLine(ImGui::GetWindowWidth() - 150);
+        ImGui::Text("Plan: %s", g_Config.GetConfig().user.plan.c_str());
+        ImGui::PopStyleColor();
+
+        ImGui::Separator();
+
+        // Tab bar
+        const char* tabs[] = { "Combat", "Render", "Utility", "Movement", "Profiles", "Settings" };
+        for (int i = 0; i < IM_ARRAYSIZE(tabs); i++) {
+            if (i > 0) ImGui::SameLine();
+            
+            bool isActive = g_State.activeTab == i;
+            if (isActive) {
+                ImGui::PushStyleColor(ImGuiCol_Button, AurianColors::TabActive);
+                ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::AccentPrimary);
+            } else {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextSecondary);
+            }
+            
+            if (ImGui::Button(tabs[i], ImVec2(120, 30))) {
+                g_State.activeTab = i;
+            }
+            ImGui::PopStyleColor(2);
+        }
+
+        ImGui::Spacing();
+
+        // Content area
+        ImGui::BeginChild("##Content", ImVec2(0, 0), false);
+        
+        switch (g_State.activeTab) {
+            case 0: RenderCombatTab(); break;
+            case 1: RenderRenderTab(); break;
+            case 2: RenderUtilityTab(); break;
+            case 3: RenderMovementTab(); break;
+            case 4: RenderProfilesTab(); break;
+            case 5: RenderSettingsTab(); break;
+        }
+
+        ImGui::EndChild();
+
+        // Footer
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextDisabled);
+        float footerWidth = ImGui::CalcTextSize("Powered by Aurian Studios").x;
+        ImGui::SetCursorPosX((mainW - footerWidth) * 0.5f);
+        ImGui::TextUnformatted("Powered by Aurian Studios");
+        ImGui::PopStyleColor();
+
+        ImGui::End();
+    }
+
+    void RenderModuleList(ModuleCategory category) {
+        auto modules = g_Modules.GetModulesByCategory(category);
+        for (auto* mod : modules) {
+            AurianWidgets::ToggleButton(mod->name.c_str(), &mod->enabled);
+            
+            if (mod->enabled) {
+                ImGui::Indent(20.0f);
+                for (auto& setting : mod->settings) {
+                    switch (setting.type) {
+                        case ModuleSetting::Toggle:
+                            AurianWidgets::ToggleButton(setting.name.c_str(), &setting.floatValue > 0.5f ? 
+                                (bool*)&setting.floatValue : nullptr);
+                            break;
+                        case ModuleSetting::Float:
+                            AurianWidgets::StyledSliderFloat(setting.name.c_str(), 
+                                &setting.floatValue, setting.minFloat, setting.maxFloat);
+                            break;
+                        case ModuleSetting::Int:
+                            AurianWidgets::StyledSliderFloat(setting.name.c_str(), 
+                                (float*)&setting.intValue, (float)setting.intValue, (float)setting.intValue + 100, "%.0f");
+                            break;
+                        case ModuleSetting::Enum:
+                            if (ImGui::BeginCombo(setting.name.c_str(), 
+                                setting.enumValues.empty() ? "" : setting.enumValues[setting.intValue].c_str())) {
+                                for (int i = 0; i < setting.enumValues.size(); i++) {
+                                    bool selected = setting.intValue == i;
+                                    if (ImGui::Selectable(setting.enumValues[i].c_str(), selected)) {
+                                        setting.intValue = i;
+                                    }
+                                    if (selected) ImGui::SetItemDefaultFocus();
+                                }
+                                ImGui::EndCombo();
+                            }
+                            break;
+                        case ModuleSetting::String:
+                            AurianWidgets::StyledInputText(setting.name.c_str(), 
+                                setting.stringValue.data(), setting.stringValue.capacity());
+                            break;
+                    }
+                }
+                ImGui::Unindent(20.0f);
+            }
+            ImGui::Spacing();
+        }
+    }
+
+    void RenderCombatTab() {
+        AurianWidgets::SectionHeader("Combat Modules");
+        RenderModuleList(ModuleCategory::Combat);
+    }
+
+    void RenderRenderTab() {
+        AurianWidgets::SectionHeader("Render Modules");
+        RenderModuleList(ModuleCategory::Render);
+    }
+
+    void RenderUtilityTab() {
+        AurianWidgets::SectionHeader("Utility Modules");
+        RenderModuleList(ModuleCategory::Utility);
+    }
+
+    void RenderMovementTab() {
+        AurianWidgets::SectionHeader("Movement Modules");
+        RenderModuleList(ModuleCategory::Movement);
+    }
+
+    void RenderProfilesTab() {
+        AurianWidgets::SectionHeader("Profile Management");
+
+        // Active profile
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextSecondary);
+        ImGui::Text("Active: %s", g_Config.GetConfig().activeProfile.c_str());
+        ImGui::PopStyleColor();
+
+        ImGui::Spacing();
+
+        // Profile name input
+        AurianWidgets::StyledInputText("Profile Name", g_State.profileName, sizeof(g_State.profileName));
+
+        ImGui::Spacing();
+
+        // Profile buttons
+        if (AurianWidgets::StyledButton("Save Current", ImVec2(150, 30))) {
+            if (strlen(g_State.profileName) > 0) {
+                g_Modules.SaveAll();
+                g_Config.SaveProfile(g_State.profileName);
+            }
+        }
+        ImGui::SameLine();
+        if (AurianWidgets::StyledButton("Load Profile", ImVec2(150, 30), false)) {
+            if (strlen(g_State.profileName) > 0) {
+                g_Config.LoadProfile(g_State.profileName);
+                g_Modules.Initialize(); // Reload module states
+            }
+        }
+
+        ImGui::Spacing();
+        ImGui::Spacing();
+
+        // Profile list
+        AurianWidgets::SectionHeader("Saved Profiles");
+        auto profiles = g_Config.GetProfileList();
+        for (const auto& profile : profiles) {
+            bool isSelected = profile == g_Config.GetConfig().activeProfile;
+            if (isSelected) {
+                ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::AccentPrimary);
+            }
+            
+            if (ImGui::Selectable(profile.c_str(), isSelected)) {
+                g_Config.LoadProfile(profile);
+                g_Modules.Initialize();
+            }
+            
+            if (isSelected) {
+                ImGui::PopStyleColor();
+            }
+        }
+
+        if (profiles.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextDisabled);
+            ImGui::TextUnformatted("No saved profiles");
+            ImGui::PopStyleColor();
+        }
+
+        ImGui::Spacing();
+        ImGui::Spacing();
+
+        // Friends section
+        AurianWidgets::SectionHeader("Friends List");
+        AurianWidgets::StyledInputText("Player Name", g_State.friendName, sizeof(g_State.friendName));
+        
+        if (AurianWidgets::StyledButton("Add Friend", ImVec2(120, 28))) {
+            if (strlen(g_State.friendName) > 0) {
+                g_Friends.AddFriend(g_State.friendName);
+                memset(g_State.friendName, 0, sizeof(g_State.friendName));
+            }
+        }
+
+        ImGui::Spacing();
+
+        auto& friends = g_Friends.GetFriends();
+        for (int i = 0; i < friends.size(); i++) {
+            ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::Success);
+            ImGui::Bullet();
+            ImGui::SameLine();
+            ImGui::TextUnformatted(friends[i].c_str());
+            ImGui::PopStyleColor();
+            
+            ImGui::SameLine(ImGui::GetWindowWidth() - 80);
+            std::string removeLabel = "Remove##" + std::to_string(i);
+            if (AurianWidgets::StyledButton(removeLabel.c_str(), ImVec2(70, 22), false)) {
+                g_Friends.RemoveFriend(friends[i]);
+                break;
+            }
+        }
+    }
+
+    void RenderSettingsTab() {
+        AurianWidgets::SectionHeader("User Information");
+
+        ImGui::PushStyleColor(ImGuiCol_Text, AurianColors::TextSecondary);
+        ImGui::Text("Username: %s", g_Config.GetConfig().user.username.c_str());
+        ImGui::Text("Plan: %s", g_Config.GetConfig().user.plan.c_str());
+        ImGui::Text("Expires: %s", g_Config.GetConfig().user.expiry.c_str());
+        ImGui::Text("HWID: %s", g_Config.GetConfig().user.hwid.empty() ? "Unbound" : "Bound");
+        ImGui::Text("Status: %s", g_State.isInjected ? "Injected" : "Ready");
+        ImGui::PopStyleColor();
+
+        ImGui::Spacing();
+        AurianWidgets::SectionHeader("Injection");
+
+        if (AurianWidgets::StyledButton(g_State.isInjected ? "Already Injected" : "Inject into Minecraft", 
+            ImVec2(200, 35), !g_State.isInjected)) {
+            std::thread([]{
+                g_State.mcPid = g_Injector.FindMinecraftProcess();
+                if (g_State.mcPid) {
+                    if (g_Injector.Inject(g_State.mcPid)) {
+                        g_State.isInjected = true;
+                        g_Logger.Log(LogType::Success, "Client ready");
+                        g_Notifications.Push("Client injected successfully", LogType::Success);
+                    }
+                }
+            }).detach();
+        }
+
+        ImGui::Spacing();
+        AurianWidgets::SectionHeader("Logs");
+
+        ImGui::BeginChild("##LogScroll", ImVec2(0, 200), true);
+        g_Logger.Render();
+        ImGui::EndChild();
+
+        if (AurianWidgets::StyledButton("Clear Logs", ImVec2(100, 25), false)) {
+            g_Logger.Clear();
+        }
+    }
+
+public:
+    bool Initialize(HWND hwnd) {
+        m_Hwnd = hwnd;
+        
+        if (!CreateDeviceD3D()) return false;
+        CreateRenderTarget();
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.IniFilename = nullptr;
+
+        ImGui_ImplWin32_Init(hwnd);
+        ImGui_ImplDX11_Init(m_Device, m_Context);
+
+        ApplyAurianStyle();
+
+        // Load logo texture
+        g_State.logoTexture = ResourceLoader::LoadTextureFromResource(m_Device, IDR_AURIAN_PNG, 
+            g_State.logoWidth, g_State.logoHeight);
+
+        return true;
+    }
+
+    void Render() {
+        auto now = std::chrono::steady_clock::now();
+        float deltaTime = std::chrono::duration<float>(now - m_LastFrame).count();
+        m_LastFrame = now;
+
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+
+        switch (g_State.currentState) {
+            case AppState::Splash:
+                RenderSplashScreen(deltaTime);
+                break;
+            case AppState::Login:
+                RenderLoginScreen();
+                break;
+            case AppState::Dashboard:
+                RenderDashboard();
+                break;
+        }
+
+        // Notifications overlay
+        g_Notifications.Render(deltaTime);
+
+        ImGui::Render();
+
+        const float clearColor[4] = { 0.047f, 0.047f, 0.071f, 1.0f };
+        m_Context->OMSetRenderTargets(1, &m_RenderTargetView, nullptr);
+        m_Context->ClearRenderTargetView(m_RenderTargetView, clearColor);
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+        m_SwapChain->Present(1, 0);
+    }
+
+    void Shutdown() {
+        ImGui_ImplDX11_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+        CleanupDeviceD3D();
+    }
+
+    bool IsRunning() const { return m_Running; }
+    void Stop() { m_Running = false; }
+};
+
+// ============================================================================
+//  WINDOW PROCEDURE
+// ============================================================================
+static AurianGUI* g_GUI = nullptr;
+
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+        return true;
+
+    switch (msg) {
+        case WM_SIZE:
+            if (g_GUI && wParam != SIZE_MINIMIZED) {
+                // Handle resize if needed
+            }
+            return 0;
+        case WM_SYSCOMMAND:
+            if ((wParam & 0xfff0) == SC_KEYMENU)
+                return 0;
+            break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
+    }
+    return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+// ============================================================================
+//  ENTRY POINT
+// ============================================================================
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    // Set console for debugging (remove in release)
+    // AllocConsole();
+    // freopen("CONOUT$", "w", stdout);
+
+    // Initialize systems
+    g_Config.Initialize();
+    g_Modules.Initialize();
+
+    // Create window class
+    WNDCLASSEXW wc = {};
+    wc.cbSize = sizeof(WNDCLASSEXW);
+    wc.style = CS_CLASSDC;
+    wc.lpfnWndProc = WndProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = L"AurianLoaderClass";
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDR_LOGO_PNG));
+    wc.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDR_LOGO_PNG));
+    RegisterClassExW(&wc);
+
+    // Create window
+    HWND hwnd = CreateWindowExW(
+        0, L"AurianLoaderClass", L"Aurian Loader",
+        WS_POPUP | WS_VISIBLE,
+        (GetSystemMetrics(SM_CXSCREEN) - 860) / 2,
+        (GetSystemMetrics(SM_CYSCREEN) - 600) / 2,
+        860, 600,
+        nullptr, nullptr, wc.hInstance, nullptr
+    );
+
+    // Initialize GUI
+    AurianGUI gui;
+    g_GUI = &gui;
+    
+    if (!gui.Initialize(hwnd)) {
+        MessageBoxA(nullptr, "Failed to initialize renderer", "Aurian Error", MB_OK | MB_ICONERROR);
+        return 1;
+    }
+
+    // Main loop
+    MSG msg = {};
+    while (gui.IsRunning()) {
+        while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+            if (msg.message == WM_QUIT)
+                gui.Stop();
+        }
+        if (!gui.IsRunning()) break;
+        gui.Render();
+    }
+
+    gui.Shutdown();
+    DestroyWindow(hwnd);
+    UnregisterClassW(wc.lpszClassName, wc.hInstance);
+
+    return 0;
+}
