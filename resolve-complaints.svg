@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icons/Illustrative/white/resolve-complaints</title>
+    <g id="Icons/Illustrative/white/resolve-complaints" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Oval" fill="#FFFFFF" cx="128" cy="128" r="128"></circle>
+        <g id="Group" transform="translate(61.000000, 51.000000)">
+            <rect id="Rectangle" fill="#C4203F" fill-rule="nonzero" x="20" y="0" width="94.11" height="121.79"></rect>
+            <circle id="Oval" fill="#FFFFFF" fill-rule="nonzero" cx="67.35" cy="52.35" r="20.35"></circle>
+            <polygon id="Path" fill="#8B1D41" fill-rule="nonzero" points="62.8895392 62.9401596 53.7100001 53.7513294 55.6796988 51.7816307 62.8895392 58.9914712 77.9410103 43.9400001 79.9200001 45.9096987"></polygon>
+            <polygon id="Path" fill="#FFFFFF" fill-rule="nonzero" points="91.54 87 83.8 87 42 87 42 84 91.54 84"></polygon>
+            <path d="M0.610003651,143.06 L18.1000037,150.06 L18.1000037,134.06 L0.610003651,141.06 C0.236288081,141.253701 0.00121323571,141.63907 0,142.06 C-0.00106993521,142.481572 0.234672772,142.868035 0.610003651,143.06 L0.610003651,143.06 Z" id="Path" fill="#C42040" fill-rule="nonzero"></path>
+            <path d="M18.1000037,134 L18.1000037,150 L123.390004,150 L123.390004,147.9 L128.960004,147.9 C131.721427,147.9 133.960004,145.661424 133.960004,142.9 L133.960004,141 C133.960004,138.238576 131.721427,136 128.960004,136 L123.430004,136 L123.430004,134 L18.1000037,134 Z" id="Path" fill="#8B1D41" fill-rule="nonzero"></path>
+            <rect id="Rectangle" fill="#FFFFFF" x="123" y="134" width="2" height="16"></rect>
+            <rect id="Rectangle-Copy" fill="#FFFFFF" x="18" y="134" width="2" height="16"></rect>
+            <rect id="Rectangle-Copy-2" fill="#F2F3F2" transform="translate(103.500000, 138.000000) rotate(-270.000000) translate(-103.500000, -138.000000) " x="102.5" y="125.5" width="2" height="25"></rect>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icons/Illustrative/objects/office-building-256x256</title>
+    <g id="Icons/Illustrative/objects/office-building-256x256" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Oval" fill="#F2F3F2">
+            <circle cx="128" cy="128" r="128"></circle>
+        </g>
+        <g id="Group-Copy" transform="translate(84.000000, 57.000000)">
+            <path d="M86,99 L86,141 L64,141 L64,107 L24,107 L24,141 L2,141 L2,99 L86,99 Z" id="Combined-Shape" fill="#8B1D41"></path>
+            <polygon id="Fill-54" fill="#C41F3E" points="27 141 61 141 61 110 27 110"></polygon>
+            <polygon id="Fill-52" fill="#C41F3E" points="2 94 86 94 86 7 2 7"></polygon>
+            <polygon id="Fill-53" fill="#FFFFFF" points="2 99 86 99 86 94 2 94"></polygon>
+            <polygon id="Fill-66" fill="#8B1D41" points="0 8 88 8 88 0 0 0"></polygon>
+        </g>
+        <polygon id="Fill-59-Copy-3" fill="#FFFFFF" points="94 91 112 91 112 73 94 73"></polygon>
+        <polygon id="Fill-59-Copy-6" fill="#FFFFFF" points="94 116 112 116 112 98 94 98"></polygon>
+        <polygon id="Fill-59-Copy-9" fill="#FFFFFF" points="94 141 112 141 112 123 94 123"></polygon>
+        <polygon id="Fill-59-Copy-4" fill="#FFFFFF" points="119 91 137 91 137 73 119 73"></polygon>
+        <polygon id="Fill-59-Copy-7" fill="#FFFFFF" points="119 116 137 116 137 98 119 98"></polygon>
+        <polygon id="Fill-59-Copy-10" fill="#FFFFFF" points="119 141 137 141 137 123 119 123"></polygon>
+        <polygon id="Fill-59-Copy-5" fill="#FFFFFF" points="144 91 162 91 162 73 144 73"></polygon>
+        <polygon id="Fill-59-Copy-8" fill="#FFFFFF" points="144 116 162 116 162 98 144 98"></polygon>
+        <polygon id="Fill-59-Copy-11" fill="#FFFFFF" points="144 141 162 141 162 123 144 123"></polygon>
+    </g>
+</svg>

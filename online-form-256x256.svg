@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>Icons/Illustrative/device/online-form-256x256</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons/Illustrative/device/online-form-256x256" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icons/Illustrative/Oval" fill="#F2F3F2">
+            <circle id="Oval" cx="128" cy="128" r="128"></circle>
+        </g>
+        <g id="support-when-you-need-it" transform="translate(53.000000, 73.000000)" fill-rule="nonzero">
+            <rect id="Rectangle" fill="#8B1D41" x="57.7626667" y="97.8373333" width="33.792" height="15.872"></rect>
+            <path d="M108.450667,122.072 L40.8666667,122.072 C40.8666667,122.072 43.5973333,113.538667 49.5706667,113.538667 L99.7466667,113.538667 C105.72,113.538667 108.450667,122.072 108.450667,122.072 Z" id="Path" fill="#C4203F"></path>
+            <path d="M144.290667,0.386666667 L5.02666667,0.386666667 C2.296,0.386666667 0.0773333333,2.60533333 0.0773333333,5.336 L0.0773333333,92.7173333 C0.0773333333,95.448 2.296,97.6666667 5.02666667,97.6666667 L144.290667,97.6666667 C147.021333,97.6666667 149.24,95.448 149.24,92.7173333 L149.24,5.50666667 C149.24,2.776 147.021333,0.386666667 144.290667,0.386666667 Z M140.706667,89.1333333 L8.78133333,89.1333333 L8.78133333,9.09066667 L140.706667,9.09066667 L140.706667,89.1333333 Z" id="Shape" fill="#C4203F"></path>
+            <rect id="Rectangle" fill="#FFFFFF" x="8.78133333" y="9.09066667" width="131.925333" height="79.872"></rect>
+            <path d="M117.872,45.1013333 L118.213333,44.9306667 C118.725333,44.76 118.896,44.248 118.554667,43.736 C118.554667,43.5653333 118.384,43.3946667 118.213333,43.3946667 L87.664,29.5706667 L87.664,29.5706667 L87.3226667,29.4 C86.8106667,29.2293333 86.4693333,29.4 86.128,29.912 C85.9573333,30.0826667 85.9573333,30.424 86.128,30.5946667 L100.122667,61.4853333 C100.293333,61.9973333 100.805333,62.168 101.317333,61.8266667 C101.488,61.656 101.658667,61.656 101.658667,61.4853333 L101.829333,61.144 L101.829333,61.144 L105.413333,53.1226667 L118.384,66.0933333 L118.725333,65.752 L118.725333,65.752 L122.821333,61.8266667 L122.821333,61.8266667 L122.821333,61.8266667 L109.850667,48.856 L117.872,45.1013333 L117.872,45.1013333 Z" id="Path" fill="#8B1D41"></path>
+        </g>
+        <rect id="Rectangle" fill="#8B1D41" fill-rule="nonzero" x="90.6" y="98" width="37.4" height="7.5"></rect>
+        <rect id="Rectangle-Copy" fill="#8B1D41" fill-rule="nonzero" x="76" y="98" width="9" height="7.5"></rect>
+        <rect id="Rectangle" fill="#8B1D41" fill-rule="nonzero" x="90.6" y="116.7" width="37.4" height="7.5"></rect>
+        <rect id="Rectangle-Copy-2" fill="#8B1D41" fill-rule="nonzero" x="76" y="116.7" width="9" height="7.5"></rect>
+        <rect id="Rectangle" fill="#8B1D41" fill-rule="nonzero" x="90.6" y="135.4" width="37.4" height="7.5"></rect>
+        <rect id="Rectangle-Copy-3" fill="#8B1D41" fill-rule="nonzero" x="76" y="135.4" width="9" height="7.5"></rect>
+    </g>
+</svg>

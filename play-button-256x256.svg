@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 256 256" style="enable-background:new 0 0 256 256;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:#F2F3F2;}
+	.st1{fill:#C41F3E;}
+	.st2{fill:#8B1D41;}
+	.st3{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
+</style>
+<g id="Icons_x2F_Illustrative_x2F_objects_x2F_play-button-grey-256x256">
+	<g id="Oval">
+		<circle class="st0" cx="128" cy="128" r="128"/>
+	</g>
+	<g id="Group" transform="translate(58.420000, 83.450000)">
+		<path id="Rectangle" class="st1" d="M12-4.9h115.1c6.6,0,12,5.4,12,12V82c0,6.6-5.4,12-12,12H12C5.4,94,0,88.6,0,82V7.1
+			C0,0.4,5.4-4.9,12-4.9z"/>
+		<path id="Path" class="st2" d="M12,94h115.2c6.6,0,12-5.4,12-12V7.1c0-3.6-1.6-7-4.4-9.3L3,89.9C5.3,92.5,8.5,94,12,94L12,94z"/>
+	</g>
+	<path id="Triangle-Copy-2" class="st3" d="M148.7,129.7l-36.2,22c-0.9,0.6-2.2,0.3-2.7-0.7c-0.2-0.3-0.3-0.7-0.3-1v-44
+		c0-1.1,0.9-2,2-2c0.4,0,0.7,0.1,1,0.3l36.2,22c0.9,0.6,1.2,1.8,0.7,2.7C149.2,129.3,149,129.5,148.7,129.7z"/>
+</g>
+</svg>
