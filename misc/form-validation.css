@@ -1,0 +1,432 @@
+.form-section {
+    margin-bottom: 5px;
+}
+.field-space-bottom{
+    margin-bottom: 1.25rem!important;
+}
+/*equalizer*/
+.js-validate_row-equalize label {
+    display: flex;
+    align-items: flex-end;
+}
+
+.js-validate__cond-block[hidden] {
+    display:  none;
+}
+
+.js-validate_row-equalize .row-separator {
+    width: 100%;
+    float: left;
+}
+.js-validate_row-equalize .label__optional{
+    margin-left: auto;
+    line-height: 1.625;
+}
+/* end equalizer */
+
+/* labels */
+label, fieldset legend{
+    font-size: 1rem;
+    line-height: 1.625;
+    font-weight: normal;
+    margin-bottom: 5px;
+    color: #333;
+    font-family: Whitney-Medium-Pro;
+    background: transparent;
+}
+
+
+.label-wrapper label {
+    margin-bottom: 0;
+}
+
+.legend-wrapper {
+    display: flex;
+}
+
+.legend-wrapper legend{
+    width: auto;
+}
+
+.label__optional {
+    font-family: Whitney-Book-Pro;
+    font-size: .875rem;
+    line-height: 2.125;
+    color: #333333;
+    float: right;
+    display: inline-block;
+}
+.label__optional::after{
+    display: table;
+    clear: both;
+    content: "";
+}
+
+.optionalLabel {/*temporary*/
+    color: #333333;
+    font-family: Whitney-Book-Pro, Arial, Helvetica, sans-serif;
+    float: right;
+}
+
+.js-validate__text-limit-msg {
+    font-family: Whitney-Book-Pro;
+    font-size: .875rem!important;
+    line-height: 1.625;
+    color: #333333;
+    text-align: right;
+    margin-bottom: 0;
+}
+
+.help-text-form {
+    font-family: Whitney-Book-Pro;
+    font-size: 0.875rem!important;
+    line-height: 1.625;
+    color: #333333;
+    margin-bottom: 0px;
+}
+/* labels */
+
+/* inputs */
+
+
+.js-validate__input,
+input[type="text"].js-validate__input,
+input[type="tel"].js-validate__input,
+.request-form .form-content input[type="text"].js-validate__input,
+.request-form .form-content input[type="tel"].js-validate__input {
+    min-height: 48px;
+    border-radius: 1px;
+    border: 1px solid #86888A;
+    font-size: 1rem;
+    line-height: 1.625;
+    color: #333333;
+    padding: 10px 15px;
+    margin-bottom: 0;
+}
+
+.js-validate__input::placeholder {
+    font-family: Whitney-Book-Pro;
+    font-size: 1rem;
+    line-height: 1.625;
+    color: #606366;
+}
+
+.js-validate__input:hover,
+input[type="text"].js-validate__input:hover,
+input[type="tel"].js-validate__input:hover,
+.request-form .form-content  .js-validate__input:hover,
+.request-form .form-content input[type="text"].js-validate__input:hover,
+.request-form .form-content input[type="tel"].js-validate__input:hover{
+    border: 1px solid #383B3E;
+}
+
+.js-validate__input:active,
+input[type="text"].js-validate__input:active,
+input[type="tel"].js-validate__input:active,
+.request-form .form-content .js-validate__input:active,
+.request-form .form-content input[type="text"].js-validate__input:active,
+.request-form .form-content input[type="tel"].js-validate__input:active,
+.js-validate__input:focus,
+input[type="text"].js-validate__input:focus,
+input[type="tel"].js-validate__input:focus,
+.request-form .form-content .js-validate__input:focus,
+.request-form .form-content input[type="text"].js-validate__input:focus,
+.request-form .form-content input[type="tel"].js-validate__input:focus {
+    border: 2px solid #383B3E;
+    background-color: #FAFAFA;
+}
+
+.js-validate__input:focus-visible,
+.request-form .form-content .js-validate__input:focus-visible {
+    outline: none;
+}
+
+.keyboard-tabbing .js-validate__input:focus,
+.keyboard-tabbing input[type="text"].js-validate__input:focus,
+.keyboard-tabbing input[type="tel"].js-validate__input:focus,
+.keyboard-tabbing input[type="radio"].js-validate__input:focus,
+.keyboard-tabbing .request-form .form-content .js-validate__input:focus,
+.keyboard-tabbing .request-form .form-content input[type="text"].js-validate__input:focus,
+.keyboard-tabbing .request-form .form-content input[type="tel"].js-validate__input:focus,
+.keyboard-tabbing .request-form .form-content input[type="radio"].js-validate__input:focus {
+    border: 2px solid #383B3E;
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #383b3e;
+}
+
+textarea.js-validate__input {
+    min-height: 96px;
+    margin-bottom: 5px;
+}
+
+
+/* checkboxes */
+fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+fieldset legend {
+    margin-bottom: 1rem;
+}
+
+.controls {
+    display: flex;
+    align-items: center; 
+    margin-bottom: 1.25rem;
+    cursor: default;
+    user-select: none;
+    position: relative;
+    padding-left: 1.625rem;
+}
+
+.controls .js-validate__input[type="checkbox"] + label,
+.request-form .form-content .js-validate__input[type="checkbox"] + label {
+    position: relative;
+    height: 100%;
+    margin: 0 0 0 0.625rem;
+    cursor: pointer;
+    display: inline-block;
+    font-family: Whitney-Book-Pro;
+    font-size: 1rem;
+    line-height: 1.625;
+    color: #333333;
+}
+
+.controls .js-validate__input[type="checkbox"],
+.request-form .form-content .js-validate__input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+}
+
+
+.controls .js-validate__input[type="checkbox"]+label::before {
+    position: absolute;
+    border: 2px solid #86888A;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 2px;
+    top: 2px;
+    left: -35px;
+    background-color: #FFF;
+    content: " ";
+    min-height: initial;
+}
+
+.controls .js-validate__input[type="checkbox"]+label::after {
+    content: " ";
+    left: -26px;
+    top: 6px;
+    width: 7px;
+    height: 14px;
+    border: solid #86888A;
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg) skewX(10deg);
+    -ms-transform: rotate(45deg) skewX(10deg);
+    transform: rotate(45deg) skewX(10deg);
+    position: absolute;
+    display: none;
+}
+
+.controls .js-validate__input[type="checkbox"]:checked+label::before {
+    border: 2px solid #383B3E;
+    background-color: #383B3E;
+} 
+
+.controls .js-validate__input[type="checkbox"]:checked+label::after {
+    border: solid #FFF;
+    border-width: 0 2px 2px 0;
+    display: block;
+}
+
+.controls:hover .js-validate__input[type="checkbox"]+label::after {
+    display: block;
+}
+
+.controls .js-validate__input[type="checkbox"]:focus{
+    outline: none;
+}
+
+.controls .js-validate__input[type="checkbox"]:disabled+label {
+    color: #C2C2C2;
+    cursor: default;
+}
+
+.controls .js-validate__input[type="checkbox"]:disabled+label::before {
+    border: 1px solid #C2C2C2;
+}
+
+.controls .js-validate__input[type="checkbox"]:disabled+label::after {
+    display: none !important;
+}
+
+/*.keyboard-tabbing .js-validate__input[type="checkbox"]:focus+label::before,
+.keyboard-tabbing .request-form .form-content .js-validate__input[type="checkbox"]:focus+label::before {
+    outline: 2px solid #606366;
+    outline-offset: 3px;
+}*/
+
+.keyboard-tabbing input[type="checkbox"]:focus+label::before {
+    outline: 2px solid transparent !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #383b3e !important;
+}
+
+/* radiobuttons */
+
+.block-controls {
+    display: flex;
+    align-items: center; 
+    margin-bottom: 1.25rem;
+    cursor: default;
+    user-select: none;
+    position: relative;
+}
+
+.js-validate__input[type="radio"],
+.request-form .form-content .js-validate__input[type="radio"] {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    border: 2px solid #86888A;
+    background-color: #FFF;  
+    padding: 0.2rem;
+    margin: 0;
+    appearance: none;
+    background-clip: content-box;
+    cursor: pointer;
+    min-height: initial;
+}
+
+.js-validate__input[type="radio"]+label,
+.request-form .form-content .js-validate__input[type="radio"]+label {
+    display: inline;
+    vertical-align: top;
+    margin: 0 0 0 0.625rem;
+    font-family: Whitney-Book-Pro;
+}
+
+.js-validate__input[type="radio"]:hover,
+.js-validate__input[type="radio"]:focus,
+.request-form .form-content .js-validate__input[type="radio"]:hover,
+.request-form .form-content .js-validate__input[type="radio"]:focus{
+    background-color: #86888A;
+}
+
+
+.js-validate__input[type="radio"]:checked,
+.request-form .form-content .js-validate__input[type="radio"]:checked {
+    background-color: #383B3E;
+    border: 2px solid #383B3E;
+}
+
+
+.inline-controls {
+    display: flex;
+    width: 100%;
+    align-items: center;
+}
+
+.inline-controls div{
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    flex-basis: 50%; /*set by default to two items, overwrite if there more*/
+}
+
+.inline-controls .js-validate__input[type="radio"],
+.request-form .form-content .inline-controls .js-validate__input[type="radio"] {
+    flex: 0 0 1.5rem;
+    margin: 0;
+}
+
+.inline-controls .js-validate__input[type="radio"] + label:not(:last-child) {
+    margin-right: 1.25rem;
+}
+
+.keyboard-tabbing .block-controls input[type="radio"]:focus,
+.keyboard-tabbing .inline-controls input[type="radio"]:focus { 
+    outline: 2px solid transparent !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #383b3e !important;
+}
+/* dropdown */
+
+select.js-validate__input,
+.request-form .form-content select.js-validate__input {
+    background-color: #FFF;
+    min-height: 48px;
+    background-image: url(/content/dam/cibc-public-assets/development/common/icons/arrowdown.svg);
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 30px;
+    border: 1px solid #86888A;
+    border-radius: 1px;
+    font-family: Whitney-Book-Pro;
+    color: #383b3e;
+    font-size: 1rem;
+}
+
+
+/*error*/
+
+.js-validate__error {
+    display: none;
+    position: relative;
+    color: #8B1D41;
+    margin-left: 30px;
+    max-width: 100%;
+    line-height: 1.625;
+    padding: 5px 10px 5px 0;
+    font-size: 0.875rem;
+}
+
+.js-validate__error:before,
+.request-form .form-content .error:before {
+    content: "\e642";
+    font-family: 'icomoon' !important;
+    margin-right: 6px;
+    font-size: 1.125rem;
+    line-height: 1;
+    position: absolute;
+    left: -26px;
+    top: 7px;
+}
+
+.js-validate__input.js-validate__err-field:not([type="radio"]),
+input[type="text"].js-validate__input.js-validate__err-field,
+input[type="tel"].js-validate__input.js-validate__err-field,
+.request-form .form-content .js-validate__input.js-validate__err-field:not([type="radio"]),
+.request-form .form-content input[type="text"].js-validate__input.js-validate__err-field,
+.request-form .form-content input[type="tel"].js-validate__input.js-validate__err-field {
+    border-radius: 1px;
+    border: 1px solid #8B1D41;
+    background-color: rgb(245, 227, 232, 0.5);
+}
+
+.js-validate__input.js-validate__err-field:not([type="radio"]):hover,
+input[type="text"].js-validate__input.js-validate__err-field:hover,
+input[type="tel"].js-validate__input.js-validate__err-field:hover,
+.request-form .form-content  .js-validate__input.js-validate__err-field:not([type="radio"]):hover,
+.request-form .form-content input[type="text"].js-validate__input.js-validate__err-field:hover,
+.request-form .form-content input[type="tel"].js-validate__input.js-validate__err-field:hover {
+    border: 1px solid #8B1D41;
+}
+
+.js-validate__input.js-validate__err-field:not([type="radio"]):active,
+input[type="text"].js-validate__input.js-validate__err-field:active,
+input[type="tel"].js-validate__input.js-validate__err-field:active,
+.request-form .form-content  .js-validate__input.js-validate__err-field:not([type="radio"]):active,
+.request-form .form-content input[type="text"].js-validate__input.js-validate__err-field:active,
+.request-form .form-content input[type="tel"].js-validate__input.js-validate__err-field:active,
+.js-validate__input.js-validate__err-field:not([type="radio"]):focus,
+input[type="text"].js-validate__input.js-validate__err-field:focus,
+input[type="tel"].js-validate__input.js-validate__err-field:focus,
+.request-form .form-content  .js-validate__input.js-validate__err-field:not([type="radio"]):focus,
+.request-form .form-content input[type="text"].js-validate__input.js-validate__err-field:focus,
+.request-form .form-content input[type="tel"].js-validate__input.js-validate__err-field:focus {
+    border: 3px solid #8B1D41;
+}
+
+/* end error */
+
