@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>Icons/Illustrative/misc/check-mark-256x256</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons/Illustrative/misc/check-mark-256x256" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icons/Illustrative/Oval" fill="#F2F3F2">
+            <circle id="Oval" cx="128" cy="128" r="128"></circle>
+        </g>
+        <g id="Group-3" transform="translate(63.000000, 78.000000)">
+            <polygon id="Fill-1" fill="#C12341" points="108.3735 0.0002 63.9055 41.8212 53.3425 51.7732 47.0425 57.6932 47.0425 100.9952 63.9055 84.8572 98.5205 51.7732 129.9995 21.6552 129.9995 21.6532 123.5205 15.1342 118.3995 10.0402"></polygon>
+            <polygon id="Fill-2" fill="#8B1C41" points="2.1303 51.7736 0.0003 53.9056 22.9283 76.8606 28.1363 82.0736 47.0383 100.9996 47.0433 100.9956 47.0433 57.6926 47.0383 57.6976 41.1233 51.7736 21.6273 32.2546"></polygon>
+        </g>
+    </g>
+</svg>

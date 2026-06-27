@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 56.3 (81716) - https://sketch.com -->
+    <title>Icons/Illustrative/professions/bank-256x256</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons/Illustrative/professions/bank-256x256" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icons/Illustrative/Oval" fill="#F2F3F2">
+            <circle id="Oval" cx="128" cy="128" r="128"></circle>
+        </g>
+        <g id="one-bank" transform="translate(57.000000, 45.000000)" fill-rule="nonzero">
+            <path d="M68.6727273,2.01090909 L1.88,48.5563636 C0.250909091,49.72 -0.214545455,52.0472727 0.949090909,53.6763636 C1.64727273,54.6072727 2.81090909,55.3054545 3.97454545,55.3054545 L141.283636,55.3054545 C143.378182,55.3054545 145.007273,53.6763636 144.774545,51.5818182 C144.774545,50.4181818 144.076364,49.2545455 143.145455,48.5563636 L76.3527273,2.01090909 C74.4909091,0.149090909 71.2327273,0.149090909 68.6727273,2.01090909 Z" id="Path" fill="#C4203F"></path>
+            <rect id="Rectangle" fill="#8B1D41" x="17.0072727" y="59.4945455" width="21.4109091" height="50.9672727"></rect>
+            <rect id="Rectangle" fill="#8B1D41" x="61.9236364" y="59.4945455" width="21.4109091" height="50.9672727"></rect>
+            <rect id="Rectangle" fill="#8B1D41" x="107.072727" y="59.4945455" width="21.4109091" height="50.9672727"></rect>
+            <path d="M3.50909091,114.883636 L141.749091,114.883636 C143.610909,114.883636 145.007273,116.28 145.007273,117.909091 L145.007273,137.458182 C145.007273,139.087273 143.610909,140.483636 141.749091,140.483636 L3.50909091,140.483636 C1.64727273,140.483636 0.250909091,139.087273 0.250909091,137.458182 L0.250909091,117.909091 C0.250909091,116.28 1.88,114.883636 3.50909091,114.883636 Z" id="Path" fill="#C4203F"></path>
+        </g>
+    </g>
+</svg>
